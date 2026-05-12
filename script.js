@@ -21,10 +21,10 @@ const propiedades = [
         imagen: "assets/imagenes/casa.jpg"
     },
     {
-        titulo: "Departamento con cochera",
-        precio: "USD 180.000",
-        imagen: "assets/imagenes/casa.jpg"
-    }
+    titulo: "Terreno en Yerba Buena",
+    precio: "USD 95.000",
+    imagen: "assets/imagenes/casa.jpg"
+}
 ];
 
 const contenedorPropiedades = document.querySelector("#contenedor-propiedades");
