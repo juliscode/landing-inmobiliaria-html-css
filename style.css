@@ -129,3 +129,16 @@ button:hover {
 .footer p {
     margin-top: 10px;
 }
+#buscador {
+    padding: 15px;
+
+    width: 300px;
+
+    margin-top: 20px;
+
+    border-radius: 10px;
+
+    border: 1px solid #ccc;
+
+    font-size: 16px;
+}

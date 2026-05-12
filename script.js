@@ -1,14 +1,3 @@
-const botonHero = document.querySelector(".boton-hero");
-
-botonHero.addEventListener("click", function () {
-
-    const seccionPropiedades = document.querySelector("#propiedades");
-
-    seccionPropiedades.scrollIntoView({
-        behavior: "smooth"
-    });
-
-});
 const propiedades = [
     {
         titulo: "Casa moderna",
@@ -21,26 +10,57 @@ const propiedades = [
         imagen: "assets/imagenes/casa.jpg"
     },
     {
-    titulo: "Terreno en Yerba Buena",
-    precio: "USD 95.000",
-    imagen: "assets/imagenes/casa.jpg"
-}
+        titulo: "Departamento con cochera",
+        precio: "USD 180.000",
+        imagen: "assets/imagenes/casa.jpg"
+    },
+    {
+        titulo: "Terreno en Yerba Buena",
+        precio: "USD 95.000",
+        imagen: "assets/imagenes/casa.jpg"
+    }
 ];
 
 const contenedorPropiedades = document.querySelector("#contenedor-propiedades");
 
-propiedades.forEach(function (propiedad) {
-    contenedorPropiedades.innerHTML += `
-        <div class="card">
-            <img src="${propiedad.imagen}" alt="${propiedad.titulo}">
+const buscador = document.querySelector("#buscador");
 
-            <h3>${propiedad.titulo}</h3>
+function mostrarPropiedades(lista) {
 
-            <p>${propiedad.precio}</p>
+    contenedorPropiedades.innerHTML = "";
 
-            <button class="boton-principal">
-                Ver más
-            </button>
-        </div>
-    `;
+    lista.forEach(function (propiedad) {
+
+        contenedorPropiedades.innerHTML += `
+            <div class="card">
+
+                <img src="${propiedad.imagen}" alt="${propiedad.titulo}">
+
+                <h3>${propiedad.titulo}</h3>
+
+                <p>${propiedad.precio}</p>
+
+                <button class="boton-principal">
+                    Ver más
+                </button>
+
+            </div>
+        `;
+    });
+}
+
+mostrarPropiedades(propiedades);
+
+buscador.addEventListener("input", function () {
+
+    const texto = buscador.value.toLowerCase();
+
+    const propiedadesFiltradas = propiedades.filter(function (propiedad) {
+
+        return propiedad.titulo.toLowerCase().includes(texto);
+
+    });
+
+    mostrarPropiedades(propiedadesFiltradas);
+
 });
