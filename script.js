@@ -14,7 +14,8 @@ const propiedades = [
         imagen: "assets/imagenes/casa.jpg",
         ubicacion: "San Miguel de Tucumán",
         metros: "250 m²",
-        tipo: "Venta"
+        tipo: "Venta",
+        whatsapp: "https://wa.me/549381000000"
     },
     {
         titulo: "Casa Country Álamos",
@@ -22,7 +23,8 @@ const propiedades = [
         imagen: "assets/imagenes/casa.jpg",
         ubicacion: "Yerba Buena",
         metros: "200 m²",
-        tipo: "Alquiler"    
+        tipo: "Alquiler",  
+        whatsapp: "https://wa.me/549381000000"  
     },
     {
         titulo: "Departamento con cochera",
@@ -30,7 +32,8 @@ const propiedades = [
         imagen: "assets/imagenes/casa.jpg",
         ubicacion: "Yerba Buena",
         metros: "250 m²",
-        tipo: "Venta"
+        tipo: "Venta",
+        whatsapp: "https://wa.me/549381000000"
     },
     {
         titulo: "Terreno en Viento Sur",
@@ -38,7 +41,8 @@ const propiedades = [
         imagen: "assets/imagenes/casa.jpg",
         ubicacion: "Manantial",
         metros: "250 m²",
-        tipo: "Venta"
+        tipo: "Venta",
+        whatsapp: "https://wa.me/549381000000"
     },
     {
         titulo: "Terreno en Yerba Buena",
@@ -46,7 +50,8 @@ const propiedades = [
         imagen: "assets/imagenes/casa.jpg",
         ubicacion: "Yerba Buena",   
         metros: "300 m²",
-        tipo: "Venta"
+        tipo: "Venta",
+        whatsapp: "https://wa.me/549381000000"
     }
 ];
 
@@ -76,6 +81,7 @@ function mostrarPropiedades(lista) {
                     data-ubicacion="${propiedad.ubicacion}"
                     data-metros="${propiedad.metros}"
                     data-tipo="${propiedad.tipo}"
+                    data-whatsapp="${propiedad.whatsapp}"
                 >
                     Ver más
                 </button>
@@ -112,6 +118,8 @@ const modalMetros = document.querySelector("#modal-metros");
 
 const modalTipo = document.querySelector("#modal-tipo");
 
+const modalWhatsapp = document.querySelector("#modal-whatsapp");
+
 const cerrarModal = document.querySelector("#cerrar-modal");
 
 document.addEventListener("click", function (event) {
@@ -128,6 +136,8 @@ document.addEventListener("click", function (event) {
 
         const tipo = event.target.dataset.tipo;
 
+        const whatsapp = event.target.dataset.whatsapp;
+
         modalTitulo.textContent = titulo;
 
         modalPrecio.textContent = precio;
@@ -137,6 +147,8 @@ document.addEventListener("click", function (event) {
         modalMetros.textContent = "Metros: " + metros;
 
         modalTipo.textContent = "Operación: " + tipo;
+
+        modalWhatsapp.href = whatsapp;
 
         modal.style.display = "flex";
     }

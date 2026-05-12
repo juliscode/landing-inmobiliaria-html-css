@@ -79,7 +79,7 @@ button:hover {
 }
 .card:hover {
     transform: translateY(-10px);
-    
+
     box-shadow: 0px 10px 30px rgba(0,0,0,0.2);
 }
 @media (max-width: 768px) {
@@ -188,4 +188,24 @@ button:hover {
     font-weight: bold;
 
     float: right;
+}
+#modal-whatsapp {
+    display: inline-block;
+
+    margin-top: 20px;
+
+    background-color: var(--color-principal);
+
+    color: var(--color-blanco);
+
+    padding: 15px 20px;
+
+    border-radius: 10px;
+
+    text-decoration: none;
+
+    transition: all 0.3s;
+}
+#modal-whatsapp:hover {
+    transform: scale(1.05);
 }
