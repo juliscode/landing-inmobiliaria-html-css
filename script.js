@@ -11,22 +11,42 @@ const propiedades = [
     {
         titulo: "Casa moderna",
         precio: "USD 180.000",
-        imagen: "assets/imagenes/casa.jpg"
+        imagen: "assets/imagenes/casa.jpg",
+        ubicacion: "San Miguel de Tucumán",
+        metros: "250 m²",
+        tipo: "Venta"
     },
     {
         titulo: "Casa Country Álamos",
-        precio: "USD 155.000",
-        imagen: "assets/imagenes/casa.jpg"
+        precio: "USD 1.800",
+        imagen: "assets/imagenes/casa.jpg",
+        ubicacion: "Yerba Buena",
+        metros: "200 m²",
+        tipo: "Alquiler"    
     },
     {
         titulo: "Departamento con cochera",
         precio: "USD 180.000",
-        imagen: "assets/imagenes/casa.jpg"
+        imagen: "assets/imagenes/casa.jpg",
+        ubicacion: "Yerba Buena",
+        metros: "250 m²",
+        tipo: "Venta"
+    },
+    {
+        titulo: "Terreno en Viento Sur",
+        precio: "USD 65.000",
+        imagen: "assets/imagenes/casa.jpg",
+        ubicacion: "Manantial",
+        metros: "250 m²",
+        tipo: "Venta"
     },
     {
         titulo: "Terreno en Yerba Buena",
-        precio: "USD 95.000",
-        imagen: "assets/imagenes/casa.jpg"
+        precio: "USD 90.000",
+        imagen: "assets/imagenes/casa.jpg",
+        ubicacion: "Yerba Buena",   
+        metros: "300 m²",
+        tipo: "Venta"
     }
 ];
 
@@ -53,6 +73,9 @@ function mostrarPropiedades(lista) {
                     class="boton-principal boton-ver-mas"
                     data-titulo="${propiedad.titulo}"
                     data-precio="${propiedad.precio}"
+                    data-ubicacion="${propiedad.ubicacion}"
+                    data-metros="${propiedad.metros}"
+                    data-tipo="${propiedad.tipo}"
                 >
                     Ver más
                 </button>
@@ -83,6 +106,12 @@ const modalTitulo = document.querySelector("#modal-titulo");
 
 const modalPrecio = document.querySelector("#modal-precio");
 
+const modalUbicacion = document.querySelector("#modal-ubicacion");
+
+const modalMetros = document.querySelector("#modal-metros");
+
+const modalTipo = document.querySelector("#modal-tipo");
+
 const cerrarModal = document.querySelector("#cerrar-modal");
 
 document.addEventListener("click", function (event) {
@@ -93,9 +122,21 @@ document.addEventListener("click", function (event) {
 
         const precio = event.target.dataset.precio;
 
+        const ubicacion = event.target.dataset.ubicacion;
+
+        const metros = event.target.dataset.metros;
+
+        const tipo = event.target.dataset.tipo;
+
         modalTitulo.textContent = titulo;
 
         modalPrecio.textContent = precio;
+
+        modalUbicacion.textContent = "Ubicación: " + ubicacion;
+
+        modalMetros.textContent = "Metros: " + metros;
+
+        modalTipo.textContent = "Operación: " + tipo;
 
         modal.style.display = "flex";
     }
