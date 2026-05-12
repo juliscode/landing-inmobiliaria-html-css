@@ -1,0 +1,63 @@
+
+button:hover {
+    background-color: rgb(46, 8, 8);
+}
+.boton-principal {
+    background-color: rgb(109, 18, 18);
+    padding: 20px 30px;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 10px;
+}
+.hero {
+    background-color: black;
+    color: white;
+
+    padding: 50px;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+}
+.hero img {
+    width: 400px;
+    border-radius: 20px;
+}
+.hero-texto h1 {
+    margin-bottom: 20px;
+}
+.hero-texto p {
+    margin-bottom: 30px;
+}
+.hero-texto {
+    max-width: 500px;
+}
+.propiedades {
+    padding: 50px;
+    text-align: center;
+}
+.contenedor-cards {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+.card {
+    background-color: white;
+
+    width: 300px;
+
+    padding: 20px;
+
+    border-radius: 20px;
+
+    color: black;
+}
+.card img {
+    width: 100%;
+
+    border-radius: 15px;
+}
