@@ -71,11 +71,17 @@ button:hover {
     color: var(--color-negro);
 
     transition: transform 0.3s;
+
+    overflow: hidden;
 }
 .card img {
     width: 100%;
 
     border-radius: 15px;
+
+    height: 220px;
+
+    object-fit: cover;
 }
 .card:hover {
     transform: translateY(-10px);
@@ -208,4 +214,12 @@ button:hover {
 }
 #modal-whatsapp:hover {
     transform: scale(1.05);
+}
+.card p {
+    margin-top: 10px;
+
+    color: #444;
+}
+.card h3 {
+    margin-top: 15px;
 }

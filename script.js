@@ -74,6 +74,12 @@ function mostrarPropiedades(lista) {
 
                 <p>${propiedad.precio}</p>
 
+                <p>${propiedad.ubicacion}</p>
+
+                <p>${propiedad.metros}</p>
+
+                <p>${propiedad.tipo}</p>
+
                 <button 
                     class="boton-principal boton-ver-mas"
                     data-titulo="${propiedad.titulo}"
