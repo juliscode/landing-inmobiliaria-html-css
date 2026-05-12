@@ -7,6 +7,9 @@
     --color-blanco: white;
 
 }
+html {
+    scroll-behavior: smooth;
+}
 button:hover {
     background-color: var(--color-principal);
     transform: scale(1.05);
@@ -133,7 +136,7 @@ button:hover {
     font-weight: bold;
 }
 .nav-links a:hover {
-    background-color: var(--color-principal);
+    color: var(--color-principal);
 }
 .footer {
     background-color: var(--color-negro);
