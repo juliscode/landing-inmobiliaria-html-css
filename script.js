@@ -49,7 +49,11 @@ function mostrarPropiedades(lista) {
 
                 <p>${propiedad.precio}</p>
 
-                <button class="boton-principal">
+                <button 
+                    class="boton-principal boton-ver-mas"
+                    data-titulo="${propiedad.titulo}"
+                    data-precio="${propiedad.precio}"
+                >
                     Ver más
                 </button>
 
@@ -71,5 +75,35 @@ buscador.addEventListener("input", function () {
     });
 
     mostrarPropiedades(propiedadesFiltradas);
+
+});
+const modal = document.querySelector("#modal");
+
+const modalTitulo = document.querySelector("#modal-titulo");
+
+const modalPrecio = document.querySelector("#modal-precio");
+
+const cerrarModal = document.querySelector("#cerrar-modal");
+
+document.addEventListener("click", function (event) {
+
+    if (event.target.classList.contains("boton-ver-mas")) {
+
+        const titulo = event.target.dataset.titulo;
+
+        const precio = event.target.dataset.precio;
+
+        modalTitulo.textContent = titulo;
+
+        modalPrecio.textContent = precio;
+
+        modal.style.display = "flex";
+    }
+
+});
+
+cerrarModal.addEventListener("click", function () {
+
+    modal.style.display = "none";
 
 });
