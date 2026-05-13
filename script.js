@@ -59,6 +59,8 @@ const contenedorPropiedades = document.querySelector("#contenedor-propiedades");
 
 const buscador = document.querySelector("#buscador");
 
+const loader = document.querySelector("#loader");
+
 function mostrarPropiedades(lista) {
 
     contenedorPropiedades.innerHTML = "";
@@ -107,7 +109,15 @@ function mostrarPropiedades(lista) {
     });
 }
 
-mostrarPropiedades(propiedades);
+loader.style.display = "block";
+
+setTimeout(function () {
+
+    loader.style.display = "none";
+
+    mostrarPropiedades(propiedades);
+
+}, 1500);
 
 buscador.addEventListener("input", function () {
 
@@ -175,7 +185,7 @@ cerrarModal.addEventListener("click", function () {
 
     modal.style.display = "none";
 
-});il
+});
 const menuToggle = document.querySelector(".menu-toggle");
 const navLinks = document.querySelector(".nav-links");
 

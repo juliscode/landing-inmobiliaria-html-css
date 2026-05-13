@@ -271,3 +271,12 @@ button:hover {
     color: #444;
     margin-top: 30px;
 }
+#loader {
+    margin-top: 20px;
+
+    font-size: 18px;
+
+    color: var(--color-principal);
+
+    display: none;
+}
