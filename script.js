@@ -191,6 +191,18 @@ const botonAnterior = document.querySelector("#anterior-img");
 
 const botonSiguiente = document.querySelector("#siguiente-img");
 
+function abrirModal() {
+    modal.classList.add("abierto");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+}
+
+function cerrarModalPropiedad() {
+    modal.classList.remove("abierto");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+}
+
 document.addEventListener("click", function (event) {
 
     if (event.target.classList.contains("boton-ver-mas")) {
@@ -225,14 +237,32 @@ document.addEventListener("click", function (event) {
 
         modalImagen.src = imagenesActuales[imagenActual];
 
-        modal.style.display = "flex";
+        modalImagen.alt = titulo;
+
+        abrirModal();
     }
 
 });
 
 cerrarModal.addEventListener("click", function () {
 
-    modal.style.display = "none";
+    cerrarModalPropiedad();
+
+});
+
+modal.addEventListener("click", function (event) {
+
+    if (event.target === modal) {
+        cerrarModalPropiedad();
+    }
+
+});
+
+document.addEventListener("keydown", function (event) {
+
+    if (event.key === "Escape" && modal.classList.contains("abierto")) {
+        cerrarModalPropiedad();
+    }
 
 });
 const menuToggle = document.querySelector(".menu-toggle");
@@ -267,6 +297,10 @@ botonesFiltro.forEach(function (boton) {
 });
 botonSiguiente.addEventListener("click", function () {
 
+    if (imagenesActuales.length === 0) {
+        return;
+    }
+
     imagenActual++;
 
     if (imagenActual >= imagenesActuales.length) {
@@ -277,6 +311,10 @@ botonSiguiente.addEventListener("click", function () {
 
 });
 botonAnterior.addEventListener("click", function () {
+
+    if (imagenesActuales.length === 0) {
+        return;
+    }
 
     imagenActual--;
 
@@ -303,14 +341,14 @@ document.addEventListener("click", function (event) {
 
             favoritoElemento.innerHTML = '<i class="fa-regular fa-heart"></i>';
 
-        } 
-        localStorage.setItem("favoritos", JSON.stringify(favoritos));
-        else {
+        } else {
 
             favoritos.push(titulo);
 
             favoritoElemento.innerHTML = '<i class="fa-solid fa-heart"></i>';
         }
+
+        localStorage.setItem("favoritos", JSON.stringify(favoritos));
 
         console.log(favoritos);
     }

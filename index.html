@@ -31,6 +31,10 @@
 
      <div class="hero" id="inicio">
 
+    <img class="hero-media" src="assets/imagenes/hero-premium.gif" alt="">
+
+    <div class="hero-overlay"></div>
+
     <div class="hero-texto">
         <h1>Encontra tu proximo Hogar</h1>
 
@@ -93,39 +97,53 @@
 
 </footer>
 
-<div class="modal" id="modal">
+<div class="modal" id="modal" aria-hidden="true">
 
-    <div class="modal-contenido">
+    <div class="modal-contenido" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
 
-        <span id="cerrar-modal">X</span>
+        <button id="cerrar-modal" type="button" aria-label="Cerrar modal">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
 
-        <img id="modal-imagen" src="">
+        <div class="modal-galeria">
 
-        <div class="slider-botones">
+            <img id="modal-imagen" src="" alt="">
 
-    <button id="anterior-img">
-        ←
-    </button>
+            <div class="slider-botones">
 
-    <button id="siguiente-img">
-        →
-    </button>
+                <button id="anterior-img" type="button" aria-label="Imagen anterior">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <button id="siguiente-img" type="button" aria-label="Imagen siguiente">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
 
         </div>
 
-        <h2 id="modal-titulo"></h2>
+        <div class="modal-info">
 
-        <p id="modal-precio"></p>
+            <h2 id="modal-titulo"></h2>
 
-        <p id="modal-ubicacion"></p>
+            <p id="modal-precio"></p>
 
-        <p id="modal-metros"></p>
+            <div class="modal-datos">
 
-        <p id="modal-tipo"></p>
+                <p id="modal-ubicacion"></p>
 
-        <a id="modal-whatsapp" target="_blank">
-    Consultar por WhatsApp
-        </a>
+                <p id="modal-metros"></p>
+
+                <p id="modal-tipo"></p>
+
+            </div>
+
+            <a id="modal-whatsapp" target="_blank">
+        Consultar por WhatsApp
+            </a>
+
+        </div>
 
     </div>
 
