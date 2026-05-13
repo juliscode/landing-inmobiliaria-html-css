@@ -265,3 +265,9 @@ button:hover {
         width: 80%;
     }
 }
+.mensaje-vacio {
+    grid-column: 1 / -1;
+    font-size: 18px;
+    color: #444;
+    margin-top: 30px;
+}

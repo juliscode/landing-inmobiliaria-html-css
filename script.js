@@ -63,6 +63,16 @@ function mostrarPropiedades(lista) {
 
     contenedorPropiedades.innerHTML = "";
 
+    if (lista.length === 0) {
+    contenedorPropiedades.innerHTML = `
+        <p class="mensaje-vacio">
+            No encontramos propiedades con esa búsqueda.
+        </p>
+    `;
+
+    return;
+}
+
     lista.forEach(function (propiedad) {
 
         contenedorPropiedades.innerHTML += `
