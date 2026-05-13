@@ -288,3 +288,34 @@ button:hover {
         transform: scale(1);
     }
 }
+.filtros {
+    margin-top: 20px;
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 15px;
+
+    flex-wrap: wrap;
+}
+.filtro-btn {
+    background-color: var(--color-blanco);
+
+    border: 2px solid var(--color-principal);
+
+    color: var(--color-principal);
+
+    padding: 10px 20px;
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    transition: all 0.3s;
+}
+.filtro-btn:hover {
+    background-color: var(--color-principal);
+
+    color: var(--color-blanco);
+}

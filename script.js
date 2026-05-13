@@ -123,6 +123,8 @@ buscador.addEventListener("input", function () {
 
     const texto = buscador.value.toLowerCase();
 
+    const botonesFiltro = document.querySelectorAll(".filtro-btn");
+
     const propiedadesFiltradas = propiedades.filter(function (propiedad) {
 
         return propiedad.titulo.toLowerCase().includes(texto);
@@ -191,4 +193,28 @@ const navLinks = document.querySelector(".nav-links");
 
 menuToggle.addEventListener("click", function () {
     navLinks.classList.toggle("activo");
+});
+botonesFiltro.forEach(function (boton) {
+
+    boton.addEventListener("click", function () {
+
+        const filtro = boton.dataset.filtro;
+
+        if (filtro === "todas") {
+
+            mostrarPropiedades(propiedades);
+
+            return;
+        }
+
+        const propiedadesFiltradas = propiedades.filter(function (propiedad) {
+
+            return propiedad.tipo === filtro;
+
+        });
+
+        mostrarPropiedades(propiedadesFiltradas);
+
+    });
+
 });
