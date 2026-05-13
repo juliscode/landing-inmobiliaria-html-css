@@ -107,7 +107,11 @@ function mostrarPropiedades(lista) {
                 <h3>${propiedad.titulo}</h3>
 
                 <p class="favorito" data-titulo="${propiedad.titulo}">
-                    <i class="fa-regular fa-heart"></i>
+    ${
+                    favoritos.includes(propiedad.titulo)
+            ? '<i class="fa-solid fa-heart"></i>'
+            : '<i class="fa-regular fa-heart"></i>'
+    }
                 </p>
 
                 <p>${propiedad.precio}</p>
@@ -179,7 +183,7 @@ let imagenActual = 0;
 
 let imagenesActuales = [];
 
-let favoritos = [];
+let favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
 
 const cerrarModal = document.querySelector("#cerrar-modal");
 
@@ -299,7 +303,9 @@ document.addEventListener("click", function (event) {
 
             favoritoElemento.innerHTML = '<i class="fa-regular fa-heart"></i>';
 
-        } else {
+        } 
+        localStorage.setItem("favoritos", JSON.stringify(favoritos));
+        else {
 
             favoritos.push(titulo);
 
