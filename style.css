@@ -136,6 +136,7 @@ button:hover {
     color: var(--color-negro);
     transition: transform 0.3s;
     overflow: hidden;
+    animation: aparecer 0.6s ease;
 }
 
 .card img {
@@ -190,6 +191,7 @@ button:hover {
     border-radius: 20px;
     width: 400px;
     text-align: center;
+    animation: modalEntrada 0.3s ease;
 }
 
 #cerrar-modal {
@@ -214,9 +216,9 @@ button:hover {
 }
 
 @media (max-width: 768px) {
+
     .navbar {
         padding: 20px;
-        position: relative;
     }
 
     .menu-toggle {
@@ -244,11 +246,6 @@ button:hover {
         text-align: center;
     }
 
-    .hero img {
-        width: 100%;
-        margin-top: 30px;
-    }
-
     .contenedor-cards {
         grid-template-columns: 1fr;
     }
@@ -264,19 +261,30 @@ button:hover {
     .modal-contenido {
         width: 80%;
     }
+
 }
-.mensaje-vacio {
-    grid-column: 1 / -1;
-    font-size: 18px;
-    color: #444;
-    margin-top: 30px;
+@keyframes aparecer {
+
+    from {
+        opacity: 0;
+
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+
+        transform: translateY(0);
+    }
 }
-#loader {
-    margin-top: 20px;
+@keyframes modalEntrada {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
 
-    font-size: 18px;
-
-    color: var(--color-principal);
-
-    display: none;
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
