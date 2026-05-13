@@ -106,6 +106,10 @@ function mostrarPropiedades(lista) {
 
                 <h3>${propiedad.titulo}</h3>
 
+                <p class="favorito" data-titulo="${propiedad.titulo}">
+                    <i class="fa-regular fa-heart"></i>
+                </p>
+
                 <p>${propiedad.precio}</p>
 
                 <p>${propiedad.ubicacion}</p>
@@ -174,6 +178,8 @@ const modalImagen = document.querySelector("#modal-imagen");
 let imagenActual = 0;
 
 let imagenesActuales = [];
+
+let favoritos = [];
 
 const cerrarModal = document.querySelector("#cerrar-modal");
 
@@ -275,5 +281,32 @@ botonAnterior.addEventListener("click", function () {
     }
 
     modalImagen.src = imagenesActuales[imagenActual];
+
+});
+document.addEventListener("click", function (event) {
+
+    const favoritoElemento = event.target.closest(".favorito");
+
+    if (favoritoElemento) {
+
+        const titulo = favoritoElemento.dataset.titulo;
+
+        if (favoritos.includes(titulo)) {
+
+            favoritos = favoritos.filter(function (favorito) {
+                return favorito !== titulo;
+            });
+
+            favoritoElemento.innerHTML = '<i class="fa-regular fa-heart"></i>';
+
+        } else {
+
+            favoritos.push(titulo);
+
+            favoritoElemento.innerHTML = '<i class="fa-solid fa-heart"></i>';
+        }
+
+        console.log(favoritos);
+    }
 
 });

@@ -159,6 +159,7 @@ button:hover {
     transition: transform 0.3s;
     overflow: hidden;
     animation: aparecer 0.6s ease;
+    position: relative;
 }
 
 .card img {
@@ -351,4 +352,38 @@ button:hover {
     border-radius: 15px;
 
     margin-bottom: 20px;
+}
+.favorito {
+    position: absolute;
+
+    top: 15px;
+
+    right: 15px;
+
+    font-size: 22px;
+
+    cursor: pointer;
+
+    transition: transform 0.3s;
+
+    background-color: rgba(255,255,255,0.9);
+
+    width: 40px;
+
+    height: 40px;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+}
+
+.favorito:hover {
+    transform: scale(1.2);
+}
+.favorito i {
+    color: var(--color-principal);
 }
