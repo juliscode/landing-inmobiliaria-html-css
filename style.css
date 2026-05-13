@@ -4,8 +4,18 @@
     --color-blanco: white;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 html {
     scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background-color: var(--color-blanco);
+    color: var(--color-negro);
 }
 
 .boton-principal {
@@ -42,26 +52,47 @@ button:hover {
 
 .navbar {
     background-color: var(--color-blanco);
-    padding: 20px 50px;
+    padding: 18px 50px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid rgba(109,18,18,0.10);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+}
+
+.logo {
+    margin: 0;
+    letter-spacing: 1px;
 }
 
 .nav-links {
     display: flex;
-    gap: 20px;
+    align-items: center;
+    gap: 8px;
     list-style: none;
+    margin: 0;
+    padding: 6px;
+    border: 1px solid rgba(109,18,18,0.10);
+    border-radius: 999px;
+    background-color: #fbfafa;
 }
 
 .nav-links a {
     text-decoration: none;
     color: var(--color-negro);
     font-weight: bold;
+    display: inline-block;
+    padding: 10px 16px;
+    border-radius: 999px;
+    transition: all 0.3s;
 }
 
 .nav-links a:hover {
-    color: var(--color-principal);
+    background-color: var(--color-principal);
+    color: var(--color-blanco);
 }
 
 .menu-toggle {
@@ -73,6 +104,7 @@ button:hover {
     padding: 10px 15px;
     border-radius: 8px;
     cursor: pointer;
+    transition: all 0.3s;
 }
 
 .hero {
@@ -130,15 +162,29 @@ button:hover {
 .propiedades {
     padding: 50px;
     text-align: center;
+    background-color: var(--color-blanco);
+}
+
+.propiedades h2 {
+    margin-bottom: 24px;
 }
 
 #buscador {
-    padding: 15px;
-    width: 300px;
-    margin-top: 20px;
-    border-radius: 10px;
-    border: 1px solid #ccc;
+    width: min(520px, 100%);
+    padding: 17px 22px;
+    border-radius: 999px;
+    border: 1px solid rgba(109,18,18,0.22);
     font-size: 16px;
+    color: var(--color-negro);
+    background-color: var(--color-blanco);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+    outline: none;
+    transition: all 0.3s;
+}
+
+#buscador:focus {
+    border-color: var(--color-principal);
+    box-shadow: 0 14px 34px rgba(109,18,18,0.16);
 }
 
 .contenedor-cards {
@@ -158,6 +204,7 @@ button:hover {
     overflow: hidden;
     animation: aparecer 0.6s ease;
     position: relative;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.08);
 }
 
 .card img {
@@ -181,15 +228,125 @@ button:hover {
     box-shadow: 0px 10px 30px rgba(0,0,0,0.2);
 }
 
+.card-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.card-acciones .boton-principal,
+.link-zona {
+    flex: 1;
+    min-width: 120px;
+}
+
+.card-acciones .boton-principal {
+    padding: 14px 18px;
+    font-size: 16px;
+}
+
+.link-zona {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    padding: 14px 18px;
+    border: 1px solid rgba(109,18,18,0.28);
+    border-radius: 10px;
+    color: var(--color-principal);
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.link-zona:hover {
+    background-color: var(--color-principal);
+    color: var(--color-blanco);
+    transform: scale(1.03);
+}
+
 .footer {
     background-color: var(--color-negro);
     color: var(--color-blanco);
-    text-align: center;
-    padding: 40px;
+    padding: 56px 50px 28px;
 }
 
 .footer p {
     margin-top: 10px;
+}
+
+.footer-contenido {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 34px;
+    max-width: 1120px;
+    margin: 0 auto;
+}
+
+.footer h3,
+.footer h4,
+.footer p {
+    margin-bottom: 0;
+}
+
+.footer-marca h3 {
+    font-size: 28px;
+    letter-spacing: 1px;
+}
+
+.footer-marca p,
+.footer-columna p,
+.footer-copy {
+    color: rgba(255,255,255,0.72);
+}
+
+.footer-columna {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.footer-columna h4 {
+    color: var(--color-blanco);
+    font-size: 16px;
+}
+
+.footer-columna a {
+    color: rgba(255,255,255,0.72);
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.footer-columna a:hover {
+    color: var(--color-blanco);
+}
+
+.footer-redes {
+    display: flex;
+    gap: 10px;
+}
+
+.footer-redes a {
+    width: 38px;
+    height: 38px;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer-redes a:hover {
+    background-color: var(--color-principal);
+    border-color: var(--color-principal);
+}
+
+.footer-copy {
+    max-width: 1120px;
+    margin: 34px auto 0;
+    padding-top: 22px;
+    border-top: 1px solid rgba(255,255,255,0.14);
+    font-size: 14px;
 }
 
 .modal {
@@ -247,7 +404,6 @@ button:hover {
 
 #modal-whatsapp {
     display: inline-block;
-    margin-top: 26px;
     background-color: var(--color-principal);
     color: var(--color-blanco);
     padding: 15px 22px;
@@ -257,8 +413,26 @@ button:hover {
     font-weight: bold;
 }
 
-#modal-whatsapp:hover {
+#modal-mapa {
+    display: inline-block;
+    color: var(--color-principal);
+    background-color: var(--color-blanco);
+    border: 1px solid rgba(109,18,18,0.28);
+    padding: 15px 22px;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.3s;
+    font-weight: bold;
+}
+
+#modal-whatsapp:hover,
+#modal-mapa:hover {
     transform: scale(1.05);
+}
+
+#modal-mapa:hover {
+    background-color: var(--color-principal);
+    color: var(--color-blanco);
 }
 
 @media (max-width: 768px) {
@@ -280,7 +454,14 @@ button:hover {
         padding: 20px;
         border-radius: 15px;
         flex-direction: column;
+        align-items: stretch;
+        min-width: 210px;
         z-index: 1000;
+        box-shadow: 0 18px 38px rgba(0,0,0,0.14);
+    }
+
+    .nav-links a {
+        text-align: center;
     }
 
     .nav-links.activo {
@@ -312,6 +493,10 @@ button:hover {
         grid-template-columns: 1fr;
     }
 
+    .propiedades {
+        padding: 42px 22px;
+    }
+
     .card {
         width: auto;
     }
@@ -320,11 +505,34 @@ button:hover {
         width: 100%;
     }
 
+    .filtros {
+        width: 100%;
+        border-radius: 18px;
+    }
+
+    .filtro-btn {
+        flex: 1;
+        min-width: 95px;
+    }
+
     .modal-contenido {
         width: 100%;
         max-height: 92vh;
         grid-template-columns: 1fr;
         overflow-y: auto;
+    }
+
+    .footer {
+        padding: 44px 24px 24px;
+    }
+
+    .footer-contenido {
+        grid-template-columns: 1fr;
+        gap: 26px;
+    }
+
+    .footer-copy {
+        margin-top: 28px;
     }
 
 }
@@ -354,35 +562,34 @@ button:hover {
     }
 }
 .filtros {
-    margin-top: 20px;
-
+    width: fit-content;
+    max-width: 100%;
+    margin: 18px auto 0;
+    padding: 8px;
     display: flex;
-
     justify-content: center;
-
-    gap: 15px;
-
+    gap: 8px;
     flex-wrap: wrap;
+    background-color: #f8f6f6;
+    border: 1px solid rgba(109,18,18,0.12);
+    border-radius: 999px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.06);
 }
 .filtro-btn {
     background-color: var(--color-blanco);
-
-    border: 2px solid var(--color-principal);
-
+    border: 1px solid transparent;
     color: var(--color-principal);
-
-    padding: 10px 20px;
-
-    border-radius: 10px;
-
+    padding: 11px 22px;
+    border-radius: 999px;
     cursor: pointer;
-
     transition: all 0.3s;
+    font-weight: bold;
 }
-.filtro-btn:hover {
+.filtro-btn:hover,
+.filtro-btn.activo {
     background-color: var(--color-principal);
-
     color: var(--color-blanco);
+    box-shadow: 0 8px 18px rgba(109,18,18,0.20);
 }
 #modal-imagen {
     width: 100%;
@@ -408,6 +615,7 @@ button:hover {
 .modal-info {
     padding: 48px 40px 40px;
     text-align: left;
+    position: relative;
 }
 
 .modal-info h2 {
@@ -415,6 +623,7 @@ button:hover {
     font-size: 32px;
     line-height: 1.15;
     color: var(--color-negro);
+    padding-right: 62px;
 }
 
 #modal-precio {
@@ -435,6 +644,34 @@ button:hover {
     margin: 0;
     color: #333;
     font-size: 16px;
+}
+
+.modal-acciones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 26px;
+}
+
+#modal-favorito {
+    position: absolute;
+    top: 22px;
+    right: 76px;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(109,18,18,0.16);
+    border-radius: 50%;
+    background-color: var(--color-blanco);
+    color: var(--color-principal);
+    cursor: pointer;
+    font-size: 20px;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+    transition: all 0.3s;
+}
+
+#modal-favorito:hover {
+    transform: scale(1.08);
+    border-color: var(--color-principal);
 }
 .favorito {
     position: absolute;
@@ -496,6 +733,15 @@ button:hover {
 
     #modal-precio {
         font-size: 21px;
+    }
+
+    #modal-favorito {
+        top: 18px;
+        right: 20px;
+    }
+
+    .modal-acciones {
+        grid-template-columns: 1fr;
     }
 
 }

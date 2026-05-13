@@ -17,7 +17,7 @@
 
     <h2 class="logo">DIVARVARO</h2>
 
-    <button class="menu-toggle">
+    <button class="menu-toggle" aria-label="Abrir menú">
     ☰
     </button>
 
@@ -85,15 +85,55 @@
 
     <footer class="footer" id="contacto">
 
-    <h3>DIVARVARO INMOBILIARIA</h3>
+    <div class="footer-contenido">
 
-    <p>
-        Propiedades en venta y alquiler en Tucumán
-    </p>
+        <div class="footer-marca">
+            <h3>DIVARVARO</h3>
 
-    <p>
-        Contacto: +54 381 000000
-    </p>
+            <p>
+                Propiedades en venta y alquiler en Tucumán.
+            </p>
+        </div>
+
+        <div class="footer-columna">
+            <h4>Navegación</h4>
+
+            <a href="#inicio">Inicio</a>
+
+            <a href="#propiedades">Propiedades</a>
+
+            <a href="#contacto">Contacto</a>
+        </div>
+
+        <div class="footer-columna">
+            <h4>Contacto</h4>
+
+            <p>+54 381 000000</p>
+
+            <p>San Miguel de Tucumán</p>
+        </div>
+
+        <div class="footer-columna">
+            <h4>Redes</h4>
+
+            <div class="footer-redes">
+                <a href="#" aria-label="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+
+                <a href="#" aria-label="Facebook">
+                    <i class="fa-brands fa-facebook-f"></i>
+                </a>
+
+                <a href="#" aria-label="WhatsApp">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <p class="footer-copy">DIVARVARO INMOBILIARIA</p>
 
 </footer>
 
@@ -125,6 +165,10 @@
 
         <div class="modal-info">
 
+            <button id="modal-favorito" type="button" aria-label="Agregar a favoritos">
+                <i class="fa-regular fa-heart"></i>
+            </button>
+
             <h2 id="modal-titulo"></h2>
 
             <p id="modal-precio"></p>
@@ -139,9 +183,17 @@
 
             </div>
 
-            <a id="modal-whatsapp" target="_blank">
-        Consultar por WhatsApp
-            </a>
+            <div class="modal-acciones">
+
+                <a id="modal-whatsapp" target="_blank">
+            Consultar por WhatsApp
+                </a>
+
+                <a id="modal-mapa" target="_blank" rel="noopener noreferrer">
+            Ver ubicación
+                </a>
+
+            </div>
 
         </div>
 

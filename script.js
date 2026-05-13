@@ -83,6 +83,56 @@ const botonesFiltro = document.querySelectorAll(".filtro-btn");
 
 const loader = document.querySelector("#loader");
 
+marcarFiltroActivo(botonesFiltro[0]);
+
+function crearUrlMapa(ubicacion) {
+    const busqueda = encodeURIComponent(ubicacion + ", Tucumán, Argentina");
+
+    return "https://www.google.com/maps/search/?api=1&query=" + busqueda;
+}
+
+function marcarFiltroActivo(botonActivo) {
+    botonesFiltro.forEach(function (boton) {
+        boton.classList.remove("activo");
+    });
+
+    botonActivo.classList.add("activo");
+}
+
+function obtenerIconoFavorito(titulo) {
+    if (favoritos.includes(titulo)) {
+        return '<i class="fa-solid fa-heart"></i>';
+    }
+
+    return '<i class="fa-regular fa-heart"></i>';
+}
+
+function guardarFavoritos() {
+    localStorage.setItem("favoritos", JSON.stringify(favoritos));
+}
+
+function alternarFavorito(titulo) {
+    if (favoritos.includes(titulo)) {
+        favoritos = favoritos.filter(function (favorito) {
+            return favorito !== titulo;
+        });
+    } else {
+        favoritos.push(titulo);
+    }
+
+    guardarFavoritos();
+}
+
+function actualizarIconosFavorito(titulo) {
+    document.querySelectorAll('.favorito[data-titulo="' + titulo + '"]').forEach(function (favoritoElemento) {
+        favoritoElemento.innerHTML = obtenerIconoFavorito(titulo);
+    });
+
+    if (modalFavorito.dataset.titulo === titulo) {
+        modalFavorito.innerHTML = obtenerIconoFavorito(titulo);
+    }
+}
+
 function mostrarPropiedades(lista) {
 
     contenedorPropiedades.innerHTML = "";
@@ -107,11 +157,7 @@ function mostrarPropiedades(lista) {
                 <h3>${propiedad.titulo}</h3>
 
                 <p class="favorito" data-titulo="${propiedad.titulo}">
-    ${
-                    favoritos.includes(propiedad.titulo)
-            ? '<i class="fa-solid fa-heart"></i>'
-            : '<i class="fa-regular fa-heart"></i>'
-    }
+                    ${obtenerIconoFavorito(propiedad.titulo)}
                 </p>
 
                 <p>${propiedad.precio}</p>
@@ -122,18 +168,31 @@ function mostrarPropiedades(lista) {
 
                 <p>${propiedad.tipo}</p>
 
-                <button 
-                    class="boton-principal boton-ver-mas"
-                    data-titulo="${propiedad.titulo}"
-                    data-precio="${propiedad.precio}"
-                    data-ubicacion="${propiedad.ubicacion}"
-                    data-metros="${propiedad.metros}"
-                    data-tipo="${propiedad.tipo}"
-                    data-whatsapp="${propiedad.whatsapp}"
-                    data-imagenes='${JSON.stringify(propiedad.imagenes)}'
-                >
-                    Ver más
-                </button>
+                <div class="card-acciones">
+
+                    <button 
+                        class="boton-principal boton-ver-mas"
+                        data-titulo="${propiedad.titulo}"
+                        data-precio="${propiedad.precio}"
+                        data-ubicacion="${propiedad.ubicacion}"
+                        data-metros="${propiedad.metros}"
+                        data-tipo="${propiedad.tipo}"
+                        data-whatsapp="${propiedad.whatsapp}"
+                        data-imagenes='${JSON.stringify(propiedad.imagenes)}'
+                    >
+                        Ver más
+                    </button>
+
+                    <a
+                        class="link-zona"
+                        href="${crearUrlMapa(propiedad.ubicacion)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        Ver zona
+                    </a>
+
+                </div>
 
             </div>
         `;
@@ -176,6 +235,10 @@ const modalMetros = document.querySelector("#modal-metros");
 const modalTipo = document.querySelector("#modal-tipo");
 
 const modalWhatsapp = document.querySelector("#modal-whatsapp");
+
+const modalMapa = document.querySelector("#modal-mapa");
+
+const modalFavorito = document.querySelector("#modal-favorito");
 
 const modalImagen = document.querySelector("#modal-imagen");
 
@@ -235,6 +298,12 @@ document.addEventListener("click", function (event) {
 
         modalWhatsapp.href = whatsapp;
 
+        modalMapa.href = crearUrlMapa(ubicacion);
+
+        modalFavorito.dataset.titulo = titulo;
+
+        modalFavorito.innerHTML = obtenerIconoFavorito(titulo);
+
         modalImagen.src = imagenesActuales[imagenActual];
 
         modalImagen.alt = titulo;
@@ -247,6 +316,19 @@ document.addEventListener("click", function (event) {
 cerrarModal.addEventListener("click", function () {
 
     cerrarModalPropiedad();
+
+});
+
+modalFavorito.addEventListener("click", function () {
+
+    const titulo = modalFavorito.dataset.titulo;
+
+    if (!titulo) {
+        return;
+    }
+
+    alternarFavorito(titulo);
+    actualizarIconosFavorito(titulo);
 
 });
 
@@ -276,6 +358,7 @@ botonesFiltro.forEach(function (boton) {
     boton.addEventListener("click", function () {
 
         const filtro = boton.dataset.filtro;
+        marcarFiltroActivo(boton);
 
         if (filtro === "todas") {
 
@@ -333,22 +416,8 @@ document.addEventListener("click", function (event) {
 
         const titulo = favoritoElemento.dataset.titulo;
 
-        if (favoritos.includes(titulo)) {
-
-            favoritos = favoritos.filter(function (favorito) {
-                return favorito !== titulo;
-            });
-
-            favoritoElemento.innerHTML = '<i class="fa-regular fa-heart"></i>';
-
-        } else {
-
-            favoritos.push(titulo);
-
-            favoritoElemento.innerHTML = '<i class="fa-solid fa-heart"></i>';
-        }
-
-        localStorage.setItem("favoritos", JSON.stringify(favoritos));
+        alternarFavorito(titulo);
+        actualizarIconosFavorito(titulo);
 
         console.log(favoritos);
     }
