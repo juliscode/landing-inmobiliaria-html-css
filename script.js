@@ -65,8 +65,8 @@ const propiedades = [
         precio: "USD 90.000",
        imagenes: [
     "assets/imagenes/casa.jpg",
-    "assets/imagenes/casa.jpg",
-    "assets/imagenes/casa.jpg"
+    "assets/imagenes/casa2.jpg",
+    "assets/imagenes/casa3.jpg"
 ],
         ubicacion: "Yerba Buena",   
         metros: "300 m²",
@@ -122,7 +122,7 @@ function mostrarPropiedades(lista) {
                     data-metros="${propiedad.metros}"
                     data-tipo="${propiedad.tipo}"
                     data-whatsapp="${propiedad.whatsapp}"
-                    data-imagen="${propiedad.imagenes[0]}"
+                    data-imagenes='${JSON.stringify(propiedad.imagenes)}'
                 >
                     Ver más
                 </button>
@@ -171,7 +171,15 @@ const modalWhatsapp = document.querySelector("#modal-whatsapp");
 
 const modalImagen = document.querySelector("#modal-imagen");
 
+let imagenActual = 0;
+
+let imagenesActuales = [];
+
 const cerrarModal = document.querySelector("#cerrar-modal");
+
+const botonAnterior = document.querySelector("#anterior-img");
+
+const botonSiguiente = document.querySelector("#siguiente-img");
 
 document.addEventListener("click", function (event) {
 
@@ -189,7 +197,9 @@ document.addEventListener("click", function (event) {
 
         const whatsapp = event.target.dataset.whatsapp;
 
-        const imagen = event.target.dataset.imagen;
+        imagenesActuales = JSON.parse(event.target.dataset.imagenes);
+
+        imagenActual = 0;
 
         modalTitulo.textContent = titulo;
 
@@ -203,7 +213,7 @@ document.addEventListener("click", function (event) {
 
         modalWhatsapp.href = whatsapp;
 
-        modalImagen.src = imagen;
+        modalImagen.src = imagenesActuales[imagenActual];
 
         modal.style.display = "flex";
     }
@@ -243,5 +253,27 @@ botonesFiltro.forEach(function (boton) {
         mostrarPropiedades(propiedadesFiltradas);
 
     });
+
+});
+botonSiguiente.addEventListener("click", function () {
+
+    imagenActual++;
+
+    if (imagenActual >= imagenesActuales.length) {
+        imagenActual = 0;
+    }
+
+    modalImagen.src = imagenesActuales[imagenActual];
+
+});
+botonAnterior.addEventListener("click", function () {
+
+    imagenActual--;
+
+    if (imagenActual < 0) {
+        imagenActual = imagenesActuales.length - 1;
+    }
+
+    modalImagen.src = imagenesActuales[imagenActual];
 
 });
