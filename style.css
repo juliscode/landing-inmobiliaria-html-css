@@ -60,11 +60,22 @@ button:hover {
 }
 
 .hero {
-    background-color: var(--color-negro);
+    background:
+        linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+        url("assets/imagenes/casa.jpg");
+
+    background-size: cover;
+
+    background-position: center;
+
     color: var(--color-blanco);
-    padding: 50px;
+
+    padding: 120px 50px;
+
     display: flex;
+
     justify-content: space-between;
+
     align-items: center;
 }
 
@@ -74,15 +85,26 @@ button:hover {
 
 .hero-texto h1 {
     margin-bottom: 20px;
+
+    font-size: 60px;
+
+    line-height: 1.1;
 }
 
 .hero-texto p {
     margin-bottom: 30px;
+
+    font-size: 20px;
+
+    color: rgba(255,255,255,0.8);
 }
 
 .hero img {
     width: 400px;
     border-radius: 20px;
+}
+.boton-hero {
+    margin-top: 20px;
 }
 
 .propiedades {
