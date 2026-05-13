@@ -11,7 +11,11 @@ const propiedades = [
     {
         titulo: "Casa moderna",
         precio: "USD 180.000",
-        imagen: "assets/imagenes/casa.jpg",
+        imagenes: [
+    "assets/imagenes/casa.jpg",
+    "assets/imagenes/casa.jpg",
+    "assets/imagenes/casa.jpg"
+],
         ubicacion: "San Miguel de Tucumán",
         metros: "250 m²",
         tipo: "Venta",
@@ -20,7 +24,11 @@ const propiedades = [
     {
         titulo: "Casa Country Álamos",
         precio: "USD 1.800",
-        imagen: "assets/imagenes/casa.jpg",
+        imagenes: [
+    "assets/imagenes/casa.jpg",
+    "assets/imagenes/casa.jpg",
+    "assets/imagenes/casa.jpg"
+],
         ubicacion: "Yerba Buena",
         metros: "200 m²",
         tipo: "Alquiler",  
@@ -29,7 +37,11 @@ const propiedades = [
     {
         titulo: "Departamento con cochera",
         precio: "USD 180.000",
-        imagen: "assets/imagenes/casa.jpg",
+        imagenes: [
+    "assets/imagenes/casa.jpg",
+    "assets/imagenes/casa.jpg",
+    "assets/imagenes/casa.jpg"
+],
         ubicacion: "Yerba Buena",
         metros: "250 m²",
         tipo: "Venta",
@@ -38,7 +50,11 @@ const propiedades = [
     {
         titulo: "Terreno en Viento Sur",
         precio: "USD 65.000",
-        imagen: "assets/imagenes/casa.jpg",
+        imagenes: [
+    "assets/imagenes/casa.jpg",
+    "assets/imagenes/casa.jpg",
+    "assets/imagenes/casa.jpg"
+],
         ubicacion: "Manantial",
         metros: "250 m²",
         tipo: "Venta",
@@ -47,7 +63,11 @@ const propiedades = [
     {
         titulo: "Terreno en Yerba Buena",
         precio: "USD 90.000",
-        imagen: "assets/imagenes/casa.jpg",
+       imagenes: [
+    "assets/imagenes/casa.jpg",
+    "assets/imagenes/casa.jpg",
+    "assets/imagenes/casa.jpg"
+],
         ubicacion: "Yerba Buena",   
         metros: "300 m²",
         tipo: "Venta",
@@ -58,6 +78,8 @@ const propiedades = [
 const contenedorPropiedades = document.querySelector("#contenedor-propiedades");
 
 const buscador = document.querySelector("#buscador");
+
+const botonesFiltro = document.querySelectorAll(".filtro-btn");
 
 const loader = document.querySelector("#loader");
 
@@ -80,7 +102,7 @@ function mostrarPropiedades(lista) {
         contenedorPropiedades.innerHTML += `
             <div class="card">
 
-                <img src="${propiedad.imagen}" alt="${propiedad.titulo}">
+                <img src="${propiedad.imagenes[0]}" alt="${propiedad.titulo}">
 
                 <h3>${propiedad.titulo}</h3>
 
@@ -100,6 +122,7 @@ function mostrarPropiedades(lista) {
                     data-metros="${propiedad.metros}"
                     data-tipo="${propiedad.tipo}"
                     data-whatsapp="${propiedad.whatsapp}"
+                    data-imagen="${propiedad.imagenes[0]}"
                 >
                     Ver más
                 </button>
@@ -122,8 +145,6 @@ setTimeout(function () {
 buscador.addEventListener("input", function () {
 
     const texto = buscador.value.toLowerCase();
-
-    const botonesFiltro = document.querySelectorAll(".filtro-btn");
 
     const propiedadesFiltradas = propiedades.filter(function (propiedad) {
 
@@ -148,6 +169,8 @@ const modalTipo = document.querySelector("#modal-tipo");
 
 const modalWhatsapp = document.querySelector("#modal-whatsapp");
 
+const modalImagen = document.querySelector("#modal-imagen");
+
 const cerrarModal = document.querySelector("#cerrar-modal");
 
 document.addEventListener("click", function (event) {
@@ -166,6 +189,8 @@ document.addEventListener("click", function (event) {
 
         const whatsapp = event.target.dataset.whatsapp;
 
+        const imagen = event.target.dataset.imagen;
+
         modalTitulo.textContent = titulo;
 
         modalPrecio.textContent = precio;
@@ -177,6 +202,8 @@ document.addEventListener("click", function (event) {
         modalTipo.textContent = "Operación: " + tipo;
 
         modalWhatsapp.href = whatsapp;
+
+        modalImagen.src = imagen;
 
         modal.style.display = "flex";
     }

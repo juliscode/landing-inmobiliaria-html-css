@@ -319,3 +319,14 @@ button:hover {
 
     color: var(--color-blanco);
 }
+#modal-imagen {
+    width: 100%;
+
+    height: 250px;
+
+    object-fit: cover;
+
+    border-radius: 15px;
+
+    margin-bottom: 20px;
+}
