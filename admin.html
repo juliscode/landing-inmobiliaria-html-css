@@ -114,7 +114,12 @@
 
                 <label class="campo-completo">
                     Imágenes
-                    <textarea id="imagenes" placeholder="Una imagen por línea" required></textarea>
+                    <textarea id="imagenes" placeholder="Una ruta o URL por línea"></textarea>
+                </label>
+
+                <label class="campo-completo">
+                    Subir imágenes desde la PC
+                    <input type="file" id="imagenes-archivo" accept="image/*" multiple>
                 </label>
 
                 <label class="campo-completo">
@@ -147,6 +152,7 @@
         </section>
     </main>
 
+    <script src="data/propiedades.js"></script>
     <script src="admin.js"></script>
 </body>
 

@@ -12,7 +12,23 @@ const HERO_DEFAULT = {
     tipoFondo: "gif"
 };
 
-const propiedadesBase = propiedades;
+const overridesBase = JSON.parse(localStorage.getItem("propiedadesBaseOverrides")) || {};
+const propiedadesBase = propiedades.map(function (propiedad, index) {
+    const id = "base-" + index;
+    const propiedadBase = Object.assign({}, propiedad, {
+        id: id,
+        origen: "base"
+    });
+
+    if (overridesBase[id]) {
+        return Object.assign({}, propiedadBase, overridesBase[id], {
+            id: id,
+            origen: "base"
+        });
+    }
+
+    return propiedadBase;
+});
 const propiedadesAdmin = JSON.parse(localStorage.getItem("propiedadesAdmin")) || [];
 const propiedadesDisponibles = propiedadesBase.concat(propiedadesAdmin);
 

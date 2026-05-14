@@ -26,10 +26,12 @@ const campos = {
     tipo: document.querySelector("#tipo"),
     whatsapp: document.querySelector("#whatsapp"),
     imagenes: document.querySelector("#imagenes"),
+    imagenesArchivo: document.querySelector("#imagenes-archivo"),
     video: document.querySelector("#video")
 };
 
 const STORAGE_PROPIEDADES = "propiedadesAdmin";
+const STORAGE_OVERRIDES = "propiedadesBaseOverrides";
 const STORAGE_HERO = "heroAdmin";
 
 const HERO_DEFAULT = {
@@ -41,6 +43,33 @@ const HERO_DEFAULT = {
 };
 
 let propiedadEditandoId = null;
+let propiedadEditandoOrigen = null;
+let imagenesBase64Pendientes = [];
+
+function crearIdBase(index) {
+    return "base-" + index;
+}
+
+function obtenerPropiedadesBase() {
+    const overrides = obtenerOverridesBase();
+
+    return propiedades.map(function (propiedad, index) {
+        const id = crearIdBase(index);
+        const propiedadBase = Object.assign({}, propiedad, {
+            id: id,
+            origen: "base"
+        });
+
+        if (overrides[id]) {
+            return Object.assign({}, propiedadBase, overrides[id], {
+                id: id,
+                origen: "base"
+            });
+        }
+
+        return propiedadBase;
+    });
+}
 
 function obtenerPropiedadesAdmin() {
     return JSON.parse(localStorage.getItem(STORAGE_PROPIEDADES)) || [];
@@ -48,6 +77,18 @@ function obtenerPropiedadesAdmin() {
 
 function guardarPropiedadesAdmin(propiedadesAdmin) {
     localStorage.setItem(STORAGE_PROPIEDADES, JSON.stringify(propiedadesAdmin));
+}
+
+function obtenerOverridesBase() {
+    return JSON.parse(localStorage.getItem(STORAGE_OVERRIDES)) || {};
+}
+
+function guardarOverridesBase(overrides) {
+    localStorage.setItem(STORAGE_OVERRIDES, JSON.stringify(overrides));
+}
+
+function obtenerTodasLasPropiedades() {
+    return obtenerPropiedadesBase().concat(obtenerPropiedadesAdmin());
 }
 
 function obtenerHeroAdmin() {
@@ -59,7 +100,7 @@ function guardarHeroAdmin(hero) {
 }
 
 function obtenerImagenesDesdeCampo() {
-    return campos.imagenes.value
+    const imagenesTexto = campos.imagenes.value
         .split("\n")
         .map(function (imagen) {
             return imagen.trim();
@@ -67,9 +108,27 @@ function obtenerImagenesDesdeCampo() {
         .filter(function (imagen) {
             return imagen !== "";
         });
+
+    return imagenesTexto.concat(imagenesBase64Pendientes);
 }
 
-function crearPropiedadDesdeFormulario(id) {
+function convertirArchivoABase64(archivo) {
+    return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
+
+        reader.onload = function () {
+            resolve(reader.result);
+        };
+
+        reader.onerror = function () {
+            reject(reader.error);
+        };
+
+        reader.readAsDataURL(archivo);
+    });
+}
+
+function crearPropiedadDesdeFormulario(id, origen) {
     const propiedad = {
         id: id || Date.now(),
         titulo: campos.titulo.value.trim(),
@@ -78,7 +137,8 @@ function crearPropiedadDesdeFormulario(id) {
         metros: campos.metros.value.trim(),
         tipo: campos.tipo.value,
         whatsapp: campos.whatsapp.value.trim(),
-        imagenes: obtenerImagenesDesdeCampo()
+        imagenes: obtenerImagenesDesdeCampo(),
+        origen: origen || "admin"
     };
 
     if (campos.video.value.trim() !== "") {
@@ -104,22 +164,26 @@ function cargarHeroEnFormulario() {
 
 function resetearFormularioPropiedad() {
     propiedadEditandoId = null;
+    propiedadEditandoOrigen = null;
+    imagenesBase64Pendientes = [];
     formPropiedad.reset();
     tituloFormPropiedad.textContent = "Cargar propiedad";
     botonGuardarPropiedad.innerHTML = '<i class="fa-solid fa-plus"></i> Guardar propiedad';
     botonCancelarEdicion.classList.add("oculto");
 }
 
-function cargarPropiedadParaEditar(id) {
-    const propiedad = obtenerPropiedadesAdmin().find(function (item) {
-        return item.id === id;
+function cargarPropiedadParaEditar(id, origen) {
+    const propiedad = obtenerTodasLasPropiedades().find(function (item) {
+        return String(item.id) === String(id) && item.origen === origen;
     });
 
     if (!propiedad) {
         return;
     }
 
-    propiedadEditandoId = id;
+    propiedadEditandoId = propiedad.id;
+    propiedadEditandoOrigen = propiedad.origen;
+    imagenesBase64Pendientes = [];
     campos.titulo.value = propiedad.titulo;
     campos.precio.value = propiedad.precio;
     campos.ubicacion.value = propiedad.ubicacion;
@@ -128,30 +192,32 @@ function cargarPropiedadParaEditar(id) {
     campos.whatsapp.value = propiedad.whatsapp;
     campos.imagenes.value = propiedad.imagenes.join("\n");
     campos.video.value = propiedad.video || "";
-    tituloFormPropiedad.textContent = "Editar propiedad";
+    campos.imagenesArchivo.value = "";
+    tituloFormPropiedad.textContent = propiedad.origen === "base" ? "Editar propiedad base" : "Editar propiedad";
     botonGuardarPropiedad.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar cambios';
     botonCancelarEdicion.classList.remove("oculto");
     window.scrollTo({ top: formPropiedad.offsetTop - 120, behavior: "smooth" });
 }
 
 function renderizarPropiedadesAdmin() {
-    const propiedadesAdmin = obtenerPropiedadesAdmin();
+    const todasLasPropiedades = obtenerTodasLasPropiedades();
 
-    contadorPropiedades.textContent = propiedadesAdmin.length;
+    contadorPropiedades.textContent = todasLasPropiedades.length;
     listaPropiedades.innerHTML = "";
 
-    if (propiedadesAdmin.length === 0) {
+    if (todasLasPropiedades.length === 0) {
         listaPropiedades.innerHTML = `
             <p class="admin-vacio">
-                Todavía no hay propiedades cargadas desde el panel.
+                Todavía no hay propiedades cargadas.
             </p>
         `;
 
         return;
     }
 
-    propiedadesAdmin.forEach(function (propiedad) {
+    todasLasPropiedades.forEach(function (propiedad) {
         const videoTexto = propiedad.video ? "<p>Incluye video</p>" : "";
+        const origenTexto = propiedad.origen === "base" ? "Propiedad base" : "Propiedad admin";
 
         listaPropiedades.innerHTML += `
             <article class="admin-card">
@@ -159,6 +225,7 @@ function renderizarPropiedadesAdmin() {
 
                 <div>
                     <h3>${propiedad.titulo}</h3>
+                    <p>${origenTexto}</p>
                     <p>${propiedad.precio}</p>
                     <p>${propiedad.ubicacion}</p>
                     <p>${propiedad.metros} · ${propiedad.tipo}</p>
@@ -166,11 +233,11 @@ function renderizarPropiedadesAdmin() {
                     ${videoTexto}
 
                     <div class="admin-card-acciones">
-                        <button type="button" data-accion="editar" data-id="${propiedad.id}">
+                        <button type="button" data-accion="editar" data-id="${propiedad.id}" data-origen="${propiedad.origen}">
                             Editar
                         </button>
 
-                        <button type="button" data-accion="eliminar" data-id="${propiedad.id}">
+                        <button type="button" data-accion="eliminar" data-id="${propiedad.id}" data-origen="${propiedad.origen}">
                             Eliminar
                         </button>
                     </div>
@@ -201,22 +268,38 @@ botonRestaurarHero.addEventListener("click", function () {
     mostrarMensaje(mensajeHero, "Hero restaurado al contenido original.");
 });
 
+campos.imagenesArchivo.addEventListener("change", async function () {
+    const archivos = Array.from(campos.imagenesArchivo.files);
+
+    if (archivos.length === 0) {
+        imagenesBase64Pendientes = [];
+        return;
+    }
+
+    imagenesBase64Pendientes = await Promise.all(archivos.map(convertirArchivoABase64));
+    mostrarMensaje(mensajeAdmin, archivos.length + " imagen/es listas para guardar.");
+});
+
 formPropiedad.addEventListener("submit", function (event) {
     event.preventDefault();
 
     const imagenes = obtenerImagenesDesdeCampo();
 
     if (imagenes.length === 0) {
-        mostrarMensaje(mensajeAdmin, "Agregá al menos una imagen.");
+        mostrarMensaje(mensajeAdmin, "Agregá al menos una imagen o archivo.");
         return;
     }
 
-    const propiedadesAdmin = obtenerPropiedadesAdmin();
-    const propiedad = crearPropiedadDesdeFormulario(propiedadEditandoId);
+    const propiedad = crearPropiedadDesdeFormulario(propiedadEditandoId, propiedadEditandoOrigen);
 
-    if (propiedadEditandoId) {
-        const propiedadesActualizadas = propiedadesAdmin.map(function (item) {
-            if (item.id === propiedadEditandoId) {
+    if (propiedadEditandoOrigen === "base") {
+        const overrides = obtenerOverridesBase();
+        overrides[propiedadEditandoId] = propiedad;
+        guardarOverridesBase(overrides);
+        mostrarMensaje(mensajeAdmin, "Propiedad base actualizada en localStorage.");
+    } else if (propiedadEditandoId) {
+        const propiedadesActualizadas = obtenerPropiedadesAdmin().map(function (item) {
+            if (String(item.id) === String(propiedadEditandoId)) {
                 return propiedad;
             }
 
@@ -226,6 +309,7 @@ formPropiedad.addEventListener("submit", function (event) {
         guardarPropiedadesAdmin(propiedadesActualizadas);
         mostrarMensaje(mensajeAdmin, "Propiedad actualizada correctamente.");
     } else {
+        const propiedadesAdmin = obtenerPropiedadesAdmin();
         propiedadesAdmin.push(propiedad);
         guardarPropiedadesAdmin(propiedadesAdmin);
         mostrarMensaje(mensajeAdmin, "Propiedad guardada correctamente.");
@@ -247,25 +331,33 @@ listaPropiedades.addEventListener("click", function (event) {
         return;
     }
 
-    const id = Number(botonAccion.dataset.id);
+    const id = botonAccion.dataset.id;
+    const origen = botonAccion.dataset.origen;
     const accion = botonAccion.dataset.accion;
 
     if (accion === "editar") {
-        cargarPropiedadParaEditar(id);
+        cargarPropiedadParaEditar(id, origen);
         return;
     }
 
-    const propiedadesAdmin = obtenerPropiedadesAdmin().filter(function (propiedad) {
-        return propiedad.id !== id;
-    });
+    if (origen === "base") {
+        const overrides = obtenerOverridesBase();
+        delete overrides[id];
+        guardarOverridesBase(overrides);
+        mostrarMensaje(mensajeAdmin, "Cambios de la propiedad base eliminados.");
+    } else {
+        const propiedadesAdmin = obtenerPropiedadesAdmin().filter(function (propiedad) {
+            return String(propiedad.id) !== String(id);
+        });
 
-    guardarPropiedadesAdmin(propiedadesAdmin);
+        guardarPropiedadesAdmin(propiedadesAdmin);
+        mostrarMensaje(mensajeAdmin, "Propiedad eliminada.");
+    }
 
-    if (propiedadEditandoId === id) {
+    if (String(propiedadEditandoId) === String(id)) {
         resetearFormularioPropiedad();
     }
 
-    mostrarMensaje(mensajeAdmin, "Propiedad eliminada.");
     renderizarPropiedadesAdmin();
 });
 
