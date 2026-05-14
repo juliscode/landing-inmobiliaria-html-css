@@ -62,6 +62,10 @@ body {
     gap: 28px;
 }
 
+.admin-panel-hero {
+    grid-column: 1 / -1;
+}
+
 .admin-panel {
     padding: 28px;
     border: 1px solid rgba(109,18,18,0.12);
@@ -90,7 +94,8 @@ body {
 }
 
 .admin-form input,
-.admin-form select {
+.admin-form select,
+.admin-form textarea {
     width: 100%;
     padding: 14px 15px;
     border: 1px solid rgba(109,18,18,0.20);
@@ -103,35 +108,68 @@ body {
 }
 
 .admin-form input:focus,
-.admin-form select:focus {
+.admin-form select:focus,
+.admin-form textarea:focus {
     border-color: var(--color-principal);
     box-shadow: 0 12px 28px rgba(109,18,18,0.12);
 }
 
+.admin-form textarea {
+    min-height: 118px;
+    resize: vertical;
+    font-family: Arial, sans-serif;
+}
+
 .campo-completo,
-.admin-boton {
+.admin-acciones-form {
     grid-column: 1 / -1;
 }
 
-.admin-boton {
+.admin-acciones-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.admin-boton,
+.admin-boton-secundario {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     padding: 16px 22px;
-    border: none;
     border-radius: 12px;
-    background-color: var(--color-principal);
-    color: var(--color-blanco);
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s;
 }
 
-.admin-boton:hover {
+.admin-boton {
+    border: none;
+    background-color: var(--color-principal);
+    color: var(--color-blanco);
+}
+
+.admin-boton-secundario {
+    border: 1px solid rgba(109,18,18,0.24);
+    background-color: var(--color-blanco);
+    color: var(--color-principal);
+}
+
+.admin-boton:hover,
+.admin-boton-secundario:hover {
     transform: translateY(-2px);
     box-shadow: 0 14px 28px rgba(109,18,18,0.22);
+}
+
+.admin-boton-secundario:hover {
+    background-color: var(--color-principal);
+    color: var(--color-blanco);
+}
+
+.oculto {
+    display: none;
 }
 
 .mensaje-admin {
@@ -196,6 +234,12 @@ body {
     margin: 4px 0;
     color: #555;
     font-size: 14px;
+}
+
+.admin-card-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .admin-card button {

@@ -31,16 +31,18 @@
 
      <div class="hero" id="inicio">
 
-    <img class="hero-media" src="assets/imagenes/hero-premium.gif" alt="">
+    <img class="hero-media" id="hero-media-imagen" src="assets/imagenes/hero-premium.gif" alt="">
+
+    <video class="hero-media hero-video" id="hero-media-video" muted loop playsinline></video>
 
     <div class="hero-overlay"></div>
 
     <div class="hero-texto">
-        <h1>Encontra tu proximo Hogar</h1>
+        <h1 id="hero-titulo">Encontra tu proximo Hogar</h1>
 
-        <p>Propiedades en venta y alquiler en tu ciudad</p>
+        <p id="hero-subtitulo">Propiedades en venta y alquiler en tu ciudad</p>
 
-        <button class="boton-principal boton-hero">
+        <button class="boton-principal boton-hero" id="hero-boton">
     Ver propiedades
         </button>
     </div>
@@ -148,6 +150,8 @@
         <div class="modal-galeria">
 
             <img id="modal-imagen" src="" alt="">
+
+            <video id="modal-video" controls></video>
 
             <div class="slider-botones">
 

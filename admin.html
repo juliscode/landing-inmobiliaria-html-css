@@ -26,8 +26,56 @@
     </header>
 
     <main class="admin-layout">
+        <section class="admin-panel admin-panel-hero">
+            <h2>Contenido del hero</h2>
+
+            <form id="form-hero" class="admin-form">
+                <label>
+                    Título
+                    <input type="text" id="hero-titulo" placeholder="Encontra tu proximo Hogar" required>
+                </label>
+
+                <label>
+                    Subtítulo
+                    <input type="text" id="hero-subtitulo" placeholder="Propiedades en venta y alquiler en tu ciudad" required>
+                </label>
+
+                <label>
+                    Texto del botón
+                    <input type="text" id="hero-boton" placeholder="Ver propiedades" required>
+                </label>
+
+                <label>
+                    Tipo de fondo
+                    <select id="hero-tipo-fondo" required>
+                        <option value="gif">Gif</option>
+                        <option value="imagen">Imagen</option>
+                        <option value="video">Video</option>
+                    </select>
+                </label>
+
+                <label class="campo-completo">
+                    URL de imagen/gif/video de fondo
+                    <input type="text" id="hero-fondo" placeholder="assets/imagenes/hero-premium.gif" required>
+                </label>
+
+                <div class="admin-acciones-form">
+                    <button type="submit" class="admin-boton">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Guardar hero
+                    </button>
+
+                    <button type="button" id="restaurar-hero" class="admin-boton-secundario">
+                        Restaurar hero
+                    </button>
+                </div>
+            </form>
+
+            <p id="mensaje-hero" class="mensaje-admin"></p>
+        </section>
+
         <section class="admin-panel">
-            <h2>Cargar propiedad</h2>
+            <h2 id="titulo-form-propiedad">Cargar propiedad</h2>
 
             <form id="form-propiedad" class="admin-form">
                 <label>
@@ -65,14 +113,25 @@
                 </label>
 
                 <label class="campo-completo">
-                    Imagen URL
-                    <input type="text" id="imagen" placeholder="assets/imagenes/casa.jpg o https://..." required>
+                    Imágenes
+                    <textarea id="imagenes" placeholder="Una imagen por línea" required></textarea>
                 </label>
 
-                <button type="submit" class="admin-boton">
-                    <i class="fa-solid fa-plus"></i>
-                    Guardar propiedad
-                </button>
+                <label class="campo-completo">
+                    Video URL opcional
+                    <input type="text" id="video" placeholder="https://...">
+                </label>
+
+                <div class="admin-acciones-form">
+                    <button type="submit" class="admin-boton" id="boton-guardar-propiedad">
+                        <i class="fa-solid fa-plus"></i>
+                        Guardar propiedad
+                    </button>
+
+                    <button type="button" id="cancelar-edicion" class="admin-boton-secundario oculto">
+                        Cancelar edición
+                    </button>
+                </div>
             </form>
 
             <p id="mensaje-admin" class="mensaje-admin"></p>

@@ -1,4 +1,20 @@
+const heroTitulo = document.querySelector("#hero-titulo");
+const heroSubtitulo = document.querySelector("#hero-subtitulo");
 const botonHero = document.querySelector(".boton-hero");
+const heroMediaImagen = document.querySelector("#hero-media-imagen");
+const heroMediaVideo = document.querySelector("#hero-media-video");
+
+const HERO_DEFAULT = {
+    titulo: heroTitulo.textContent,
+    subtitulo: heroSubtitulo.textContent,
+    boton: botonHero.textContent.trim(),
+    fondo: heroMediaImagen.getAttribute("src"),
+    tipoFondo: "gif"
+};
+
+const propiedadesBase = propiedades;
+const propiedadesAdmin = JSON.parse(localStorage.getItem("propiedadesAdmin")) || [];
+const propiedadesDisponibles = propiedadesBase.concat(propiedadesAdmin);
 
 botonHero.addEventListener("click", function () {
     const seccionPropiedades = document.querySelector("#propiedades");
@@ -7,6 +23,28 @@ botonHero.addEventListener("click", function () {
         behavior: "smooth"
     });
 });
+
+function aplicarHeroDesdeStorage() {
+    const heroGuardado = JSON.parse(localStorage.getItem("heroAdmin")) || HERO_DEFAULT;
+
+    heroTitulo.textContent = heroGuardado.titulo || HERO_DEFAULT.titulo;
+    heroSubtitulo.textContent = heroGuardado.subtitulo || HERO_DEFAULT.subtitulo;
+    botonHero.textContent = heroGuardado.boton || HERO_DEFAULT.boton;
+
+    if (heroGuardado.tipoFondo === "video") {
+        heroMediaImagen.style.display = "none";
+        heroMediaVideo.style.display = "block";
+        heroMediaVideo.src = heroGuardado.fondo || HERO_DEFAULT.fondo;
+        heroMediaVideo.play().catch(function () {});
+        return;
+    }
+
+    heroMediaVideo.pause();
+    heroMediaVideo.removeAttribute("src");
+    heroMediaVideo.style.display = "none";
+    heroMediaImagen.style.display = "block";
+    heroMediaImagen.src = heroGuardado.fondo || HERO_DEFAULT.fondo;
+}
 const contenedorPropiedades = document.querySelector("#contenedor-propiedades");
 
 const buscador = document.querySelector("#buscador");
@@ -65,6 +103,24 @@ function actualizarIconosFavorito(titulo) {
     }
 }
 
+function obtenerMediosPropiedad(propiedad) {
+    const medios = propiedad.imagenes.map(function (imagen) {
+        return {
+            tipo: "imagen",
+            src: imagen
+        };
+    });
+
+    if (propiedad.video) {
+        medios.push({
+            tipo: "video",
+            src: propiedad.video
+        });
+    }
+
+    return medios;
+}
+
 function mostrarPropiedades(lista) {
 
     contenedorPropiedades.innerHTML = "";
@@ -111,6 +167,7 @@ function mostrarPropiedades(lista) {
                         data-tipo="${propiedad.tipo}"
                         data-whatsapp="${propiedad.whatsapp}"
                         data-imagenes='${JSON.stringify(propiedad.imagenes)}'
+                        data-video="${propiedad.video || ""}"
                     >
                         Ver más
                     </button>
@@ -137,7 +194,8 @@ setTimeout(function () {
 
     loader.style.display = "none";
 
-    mostrarPropiedades(propiedades);
+    aplicarHeroDesdeStorage();
+    mostrarPropiedades(propiedadesDisponibles);
 
 }, 1500);
 
@@ -145,7 +203,7 @@ buscador.addEventListener("input", function () {
 
     const texto = buscador.value.toLowerCase();
 
-    const propiedadesFiltradas = propiedades.filter(function (propiedad) {
+    const propiedadesFiltradas = propiedadesDisponibles.filter(function (propiedad) {
 
         return propiedad.titulo.toLowerCase().includes(texto);
 
@@ -174,9 +232,11 @@ const modalFavorito = document.querySelector("#modal-favorito");
 
 const modalImagen = document.querySelector("#modal-imagen");
 
-let imagenActual = 0;
+const modalVideo = document.querySelector("#modal-video");
 
-let imagenesActuales = [];
+let medioActual = 0;
+
+let mediosActuales = [];
 
 let favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
 
@@ -196,6 +256,29 @@ function cerrarModalPropiedad() {
     modal.classList.remove("abierto");
     modal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+    modalVideo.pause();
+}
+
+function mostrarMedioActual() {
+    if (mediosActuales.length === 0) {
+        return;
+    }
+
+    const medio = mediosActuales[medioActual];
+
+    if (medio.tipo === "video") {
+        modalImagen.style.display = "none";
+        modalVideo.style.display = "block";
+        modalVideo.src = medio.src;
+        modalVideo.play().catch(function () {});
+        return;
+    }
+
+    modalVideo.pause();
+    modalVideo.removeAttribute("src");
+    modalVideo.style.display = "none";
+    modalImagen.style.display = "block";
+    modalImagen.src = medio.src;
 }
 
 document.addEventListener("click", function (event) {
@@ -214,9 +297,15 @@ document.addEventListener("click", function (event) {
 
         const whatsapp = event.target.dataset.whatsapp;
 
-        imagenesActuales = JSON.parse(event.target.dataset.imagenes);
+        const imagenes = JSON.parse(event.target.dataset.imagenes);
+        const video = event.target.dataset.video;
 
-        imagenActual = 0;
+        mediosActuales = obtenerMediosPropiedad({
+            imagenes: imagenes,
+            video: video
+        });
+
+        medioActual = 0;
 
         modalTitulo.textContent = titulo;
 
@@ -236,9 +325,8 @@ document.addEventListener("click", function (event) {
 
         modalFavorito.innerHTML = obtenerIconoFavorito(titulo);
 
-        modalImagen.src = imagenesActuales[imagenActual];
-
         modalImagen.alt = titulo;
+        mostrarMedioActual();
 
         abrirModal();
     }
@@ -294,12 +382,12 @@ botonesFiltro.forEach(function (boton) {
 
         if (filtro === "todas") {
 
-            mostrarPropiedades(propiedades);
+            mostrarPropiedades(propiedadesDisponibles);
 
             return;
         }
 
-        const propiedadesFiltradas = propiedades.filter(function (propiedad) {
+        const propiedadesFiltradas = propiedadesDisponibles.filter(function (propiedad) {
 
             return propiedad.tipo === filtro;
 
@@ -312,32 +400,32 @@ botonesFiltro.forEach(function (boton) {
 });
 botonSiguiente.addEventListener("click", function () {
 
-    if (imagenesActuales.length === 0) {
+    if (mediosActuales.length === 0) {
         return;
     }
 
-    imagenActual++;
+    medioActual++;
 
-    if (imagenActual >= imagenesActuales.length) {
-        imagenActual = 0;
+    if (medioActual >= mediosActuales.length) {
+        medioActual = 0;
     }
 
-    modalImagen.src = imagenesActuales[imagenActual];
+    mostrarMedioActual();
 
 });
 botonAnterior.addEventListener("click", function () {
 
-    if (imagenesActuales.length === 0) {
+    if (mediosActuales.length === 0) {
         return;
     }
 
-    imagenActual--;
+    medioActual--;
 
-    if (imagenActual < 0) {
-        imagenActual = imagenesActuales.length - 1;
+    if (medioActual < 0) {
+        medioActual = mediosActuales.length - 1;
     }
 
-    modalImagen.src = imagenesActuales[imagenActual];
+    mostrarMedioActual();
 
 });
 document.addEventListener("click", function (event) {
