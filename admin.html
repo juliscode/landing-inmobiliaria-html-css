@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin propiedades</title>
+    <link rel="stylesheet" href="admin.css">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    >
+</head>
+
+<body>
+    <header class="admin-header">
+        <div>
+            <h1>DIVARVARO</h1>
+            <p>Panel admin de propiedades</p>
+        </div>
+
+        <div class="admin-header-acciones">
+            <a href="index.html" class="admin-link">
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver a la landing
+            </a>
+
+            <button type="button" id="cerrar-sesion-admin" class="admin-link admin-logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                Cerrar sesión
+            </button>
+        </div>
+    </header>
+
+    <main class="admin-layout">
+        <section class="admin-panel admin-panel-hero">
+            <h2>Contenido del hero</h2>
+
+            <form id="form-hero" class="admin-form">
+                <label>
+                    Título
+                    <input type="text" id="hero-titulo" placeholder="Encontra tu proximo Hogar" required>
+                </label>
+
+                <label>
+                    Subtítulo
+                    <input type="text" id="hero-subtitulo" placeholder="Propiedades en venta y alquiler en tu ciudad" required>
+                </label>
+
+                <label>
+                    Texto del botón
+                    <input type="text" id="hero-boton" placeholder="Ver propiedades" required>
+                </label>
+
+                <label>
+                    Tipo de fondo
+                    <select id="hero-tipo-fondo" required>
+                        <option value="gif">Gif</option>
+                        <option value="imagen">Imagen</option>
+                        <option value="video">Video</option>
+                    </select>
+                </label>
+
+                <label class="campo-completo">
+                    URL de imagen/gif/video de fondo
+                    <input type="text" id="hero-fondo" placeholder="assets/imagenes/hero-premium.gif" required>
+                </label>
+
+                <div class="admin-acciones-form">
+                    <button type="submit" class="admin-boton">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Guardar hero
+                    </button>
+
+                    <button type="button" id="restaurar-hero" class="admin-boton-secundario">
+                        Restaurar hero
+                    </button>
+                </div>
+            </form>
+
+            <p id="mensaje-hero" class="mensaje-admin"></p>
+        </section>
+
+        <section class="admin-panel">
+            <h2 id="titulo-form-propiedad">Cargar propiedad</h2>
+
+            <form id="form-propiedad" class="admin-form">
+                <label>
+                    Título
+                    <input type="text" id="titulo" placeholder="Casa moderna" required>
+                </label>
+
+                <label>
+                    Precio
+                    <input type="text" id="precio" placeholder="USD 180.000" required>
+                </label>
+
+                <label>
+                    Ubicación
+                    <input type="text" id="ubicacion" placeholder="Yerba Buena" required>
+                </label>
+
+                <label>
+                    Metros
+                    <input type="text" id="metros" placeholder="250 m²" required>
+                </label>
+
+                <label>
+                    Tipo
+                    <select id="tipo" required>
+                        <option value="">Seleccionar tipo</option>
+                        <option value="Venta">Venta</option>
+                        <option value="Alquiler">Alquiler</option>
+                    </select>
+                </label>
+
+                <label>
+                    WhatsApp
+                    <input type="url" id="whatsapp" placeholder="https://wa.me/549381000000" required>
+                </label>
+
+                <label class="campo-completo">
+                    Imágenes
+                    <textarea id="imagenes" placeholder="Una ruta o URL por línea"></textarea>
+                </label>
+
+                <label class="campo-completo">
+                    Subir imágenes desde la PC
+                    <input type="file" id="imagenes-archivo" accept="image/*" multiple>
+                </label>
+
+                <label class="campo-completo">
+                    Video URL opcional
+                    <input type="text" id="video" placeholder="https://...">
+                </label>
+
+                <div class="admin-acciones-form">
+                    <button type="submit" class="admin-boton" id="boton-guardar-propiedad">
+                        <i class="fa-solid fa-plus"></i>
+                        Guardar propiedad
+                    </button>
+
+                    <button type="button" id="cancelar-edicion" class="admin-boton-secundario oculto">
+                        Cancelar edición
+                    </button>
+                </div>
+            </form>
+
+            <p id="mensaje-admin" class="mensaje-admin"></p>
+        </section>
+
+        <section class="admin-panel">
+            <div class="admin-lista-header">
+                <h2>Propiedades cargadas</h2>
+                <span id="contador-propiedades">0</span>
+            </div>
+
+            <div id="lista-propiedades" class="admin-lista"></div>
+        </section>
+    </main>
+
+    <script src="data/propiedades.js"></script>
+    <script src="admin.js"></script>
+</body>
+
+</html>

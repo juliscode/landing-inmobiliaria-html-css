@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+ <html lang="es">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Mi primera web</title>
+    <link rel="stylesheet" href="style.css">
+    <link 
+          rel="stylesheet" 
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+
+  </head>
+
+    <body>
+
+      <nav class="navbar">
+
+    <h2 class="logo">DIVARVARO</h2>
+
+    <button class="menu-toggle" aria-label="Abrir menú">
+    ☰
+    </button>
+
+    <ul class="nav-links">
+        <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#propiedades">Propiedades</a></li>
+        <li><a href="#contacto">Contacto</a></li>
+    </ul>
+
+       </nav>
+
+     <div class="hero" id="inicio">
+
+    <img class="hero-media" id="hero-media-imagen" src="assets/imagenes/hero-premium.gif" alt="">
+
+    <video class="hero-media hero-video" id="hero-media-video" muted loop playsinline></video>
+
+    <div class="hero-overlay"></div>
+
+    <div class="hero-texto">
+        <h1 id="hero-titulo">Encontra tu proximo Hogar</h1>
+
+        <p id="hero-subtitulo">Propiedades en venta y alquiler en tu ciudad</p>
+
+        <button class="boton-principal boton-hero" id="hero-boton">
+    Ver propiedades
+        </button>
+    </div>
+
+</div>
+
+    <section class="propiedades" id="propiedades">
+
+    <h2>Propiedades destacadas</h2>
+
+    <input 
+    type="text" 
+    id="buscador"
+    placeholder="Buscar propiedad..."
+>
+
+<div class="filtros">
+
+    <button class="filtro-btn" data-filtro="todas">
+        Todas
+    </button>
+
+    <button class="filtro-btn" data-filtro="Venta">
+        Venta
+    </button>
+
+    <button class="filtro-btn" data-filtro="Alquiler">
+        Alquiler
+    </button>
+
+</div>
+
+    <div class="contenedor-cards" id="contenedor-propiedades">
+
+    </div>
+
+    <div id="loader">
+    Cargando propiedades...
+</div>
+
+     </section>
+
+    <footer class="footer" id="contacto">
+
+    <div class="footer-contenido">
+
+        <div class="footer-marca">
+            <h3>DIVARVARO</h3>
+
+            <p>
+                Propiedades en venta y alquiler en Tucumán.
+            </p>
+        </div>
+
+        <div class="footer-columna">
+            <h4>Navegación</h4>
+
+            <a href="#inicio">Inicio</a>
+
+            <a href="#propiedades">Propiedades</a>
+
+            <a href="#contacto">Contacto</a>
+        </div>
+
+        <div class="footer-columna">
+            <h4>Contacto</h4>
+
+            <p>+54 381 000000</p>
+
+            <p>San Miguel de Tucumán</p>
+        </div>
+
+        <div class="footer-columna">
+            <h4>Redes</h4>
+
+            <div class="footer-redes">
+                <a href="#" aria-label="Instagram">
+                    <i class="fa-brands fa-instagram"></i>
+                </a>
+
+                <a href="#" aria-label="Facebook">
+                    <i class="fa-brands fa-facebook-f"></i>
+                </a>
+
+                <a href="#" aria-label="WhatsApp">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <p class="footer-copy">DIVARVARO INMOBILIARIA</p>
+
+</footer>
+
+<div class="modal" id="modal" aria-hidden="true">
+
+    <div class="modal-contenido" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+
+        <button id="cerrar-modal" type="button" aria-label="Cerrar modal">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="modal-galeria">
+
+            <img id="modal-imagen" src="" alt="">
+
+            <video id="modal-video" controls></video>
+
+            <div class="slider-botones">
+
+                <button id="anterior-img" type="button" aria-label="Imagen anterior">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <button id="siguiente-img" type="button" aria-label="Imagen siguiente">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="modal-info">
+
+            <button id="modal-favorito" type="button" aria-label="Agregar a favoritos">
+                <i class="fa-regular fa-heart"></i>
+            </button>
+
+            <h2 id="modal-titulo"></h2>
+
+            <p id="modal-precio"></p>
+
+            <div class="modal-datos">
+
+                <p id="modal-ubicacion"></p>
+
+                <p id="modal-metros"></p>
+
+                <p id="modal-tipo"></p>
+
+            </div>
+
+            <div class="modal-acciones">
+
+                <a id="modal-whatsapp" target="_blank">
+            Consultar por WhatsApp
+                </a>
+
+                <a id="modal-mapa" target="_blank" rel="noopener noreferrer">
+            Ver ubicación
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+       <script src="data/propiedades.js"></script>
+       <script src="script.js"></script>
+
+    </body>  
+
+    </html>
