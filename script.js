@@ -13,6 +13,7 @@ const HERO_DEFAULT = {
 };
 
 const overridesBase = JSON.parse(localStorage.getItem("propiedadesBaseOverrides")) || {};
+const propiedadesBaseEliminadas = JSON.parse(localStorage.getItem("propiedadesBaseEliminadas")) || [];
 const propiedadesBase = propiedades.map(function (propiedad, index) {
     const id = "base-" + index;
     const propiedadBase = Object.assign({}, propiedad, {
@@ -28,6 +29,8 @@ const propiedadesBase = propiedades.map(function (propiedad, index) {
     }
 
     return propiedadBase;
+}).filter(function (propiedad) {
+    return !propiedadesBaseEliminadas.includes(propiedad.id);
 });
 const propiedadesAdmin = JSON.parse(localStorage.getItem("propiedadesAdmin")) || [];
 const propiedadesDisponibles = propiedadesBase.concat(propiedadesAdmin);

@@ -57,6 +57,8 @@ const mensajeAdmin = document.querySelector("#mensaje-admin");
 const tituloFormPropiedad = document.querySelector("#titulo-form-propiedad");
 const botonGuardarPropiedad = document.querySelector("#boton-guardar-propiedad");
 const botonCancelarEdicion = document.querySelector("#cancelar-edicion");
+const previewImagenes = document.querySelector("#preview-imagenes");
+const previewVideo = document.querySelector("#preview-video");
 
 const camposHero = {
     titulo: document.querySelector("#hero-titulo"),
@@ -80,6 +82,7 @@ const campos = {
 
 const STORAGE_PROPIEDADES = "propiedadesAdmin";
 const STORAGE_OVERRIDES = "propiedadesBaseOverrides";
+const STORAGE_BASE_ELIMINADAS = "propiedadesBaseEliminadas";
 const STORAGE_HERO = "heroAdmin";
 
 const HERO_DEFAULT = {
@@ -102,6 +105,7 @@ function crearIdBase(index) {
 
 function obtenerPropiedadesBase() {
     const overrides = obtenerOverridesBase();
+    const propiedadesEliminadas = obtenerPropiedadesBaseEliminadas();
 
     return propiedades.map(function (propiedad, index) {
         const id = crearIdBase(index);
@@ -118,6 +122,8 @@ function obtenerPropiedadesBase() {
         }
 
         return propiedadBase;
+    }).filter(function (propiedad) {
+        return !propiedadesEliminadas.includes(propiedad.id);
     });
 }
 
@@ -137,6 +143,14 @@ function guardarOverridesBase(overrides) {
     localStorage.setItem(STORAGE_OVERRIDES, JSON.stringify(overrides));
 }
 
+function obtenerPropiedadesBaseEliminadas() {
+    return JSON.parse(localStorage.getItem(STORAGE_BASE_ELIMINADAS)) || [];
+}
+
+function guardarPropiedadesBaseEliminadas(propiedadesEliminadas) {
+    localStorage.setItem(STORAGE_BASE_ELIMINADAS, JSON.stringify(propiedadesEliminadas));
+}
+
 function obtenerTodasLasPropiedades() {
     return obtenerPropiedadesBase().concat(obtenerPropiedadesAdmin());
 }
@@ -149,8 +163,8 @@ function guardarHeroAdmin(hero) {
     localStorage.setItem(STORAGE_HERO, JSON.stringify(hero));
 }
 
-function obtenerImagenesDesdeCampo() {
-    const imagenesTexto = campos.imagenes.value
+function obtenerImagenesManuales() {
+    return campos.imagenes.value
         .split("\n")
         .map(function (imagen) {
             return imagen.trim();
@@ -158,8 +172,10 @@ function obtenerImagenesDesdeCampo() {
         .filter(function (imagen) {
             return imagen !== "";
         });
+}
 
-    return imagenesTexto.concat(imagenesBase64Pendientes);
+function obtenerImagenesDesdeCampo() {
+    return obtenerImagenesManuales().concat(imagenesBase64Pendientes);
 }
 
 function convertirArchivoABase64(archivo) {
@@ -198,8 +214,81 @@ function crearPropiedadDesdeFormulario(id, origen) {
     return propiedad;
 }
 
-function mostrarMensaje(elemento, texto) {
+function mostrarMensaje(elemento, texto, tipo) {
     elemento.textContent = texto;
+    elemento.classList.remove("mensaje-error", "mensaje-exito");
+
+    if (tipo) {
+        elemento.classList.add("mensaje-" + tipo);
+    }
+}
+
+function renderizarPreviewImagenes() {
+    const imagenes = obtenerImagenesDesdeCampo();
+
+    if (imagenes.length === 0) {
+        previewImagenes.innerHTML = "<span>No hay imágenes seleccionadas.</span>";
+        return;
+    }
+
+    previewImagenes.innerHTML = "";
+
+    imagenes.forEach(function (imagen) {
+        previewImagenes.innerHTML += `
+            <figure class="admin-preview-item">
+                <img src="${imagen}" alt="Preview de propiedad">
+            </figure>
+        `;
+    });
+}
+
+function renderizarPreviewVideo() {
+    const video = campos.video.value.trim();
+
+    if (video === "") {
+        previewVideo.innerHTML = "<span>No hay video cargado.</span>";
+        return;
+    }
+
+    previewVideo.innerHTML = `
+        <video src="${video}" controls></video>
+    `;
+}
+
+function validarFormularioPropiedad() {
+    if (campos.titulo.value.trim() === "") {
+        return "Agregá un título para la propiedad.";
+    }
+
+    if (campos.precio.value.trim() === "") {
+        return "Agregá el precio de la propiedad.";
+    }
+
+    if (campos.ubicacion.value.trim() === "") {
+        return "Agregá la ubicación de la propiedad.";
+    }
+
+    if (campos.metros.value.trim() === "") {
+        return "Agregá los metros de la propiedad.";
+    }
+
+    if (campos.tipo.value === "") {
+        return "Seleccioná si la propiedad es venta o alquiler.";
+    }
+
+    if (campos.whatsapp.value.trim() === "") {
+        return "Agregá el link de WhatsApp.";
+    }
+
+    if (!campos.whatsapp.checkValidity()) {
+        return "Agregá un link de WhatsApp válido.";
+    }
+
+    if (obtenerImagenesDesdeCampo().length === 0) {
+        return "Agregá al menos una imagen por URL o desde tu computadora.";
+    }
+
+    return "";
 }
 
 function cargarHeroEnFormulario() {
@@ -217,6 +306,8 @@ function resetearFormularioPropiedad() {
     propiedadEditandoOrigen = null;
     imagenesBase64Pendientes = [];
     formPropiedad.reset();
+    renderizarPreviewImagenes();
+    renderizarPreviewVideo();
     tituloFormPropiedad.textContent = "Cargar propiedad";
     botonGuardarPropiedad.innerHTML = '<i class="fa-solid fa-plus"></i> Guardar propiedad';
     botonCancelarEdicion.classList.add("oculto");
@@ -243,6 +334,8 @@ function cargarPropiedadParaEditar(id, origen) {
     campos.imagenes.value = propiedad.imagenes.join("\n");
     campos.video.value = propiedad.video || "";
     campos.imagenesArchivo.value = "";
+    renderizarPreviewImagenes();
+    renderizarPreviewVideo();
     tituloFormPropiedad.textContent = propiedad.origen === "base" ? "Editar propiedad base" : "Editar propiedad";
     botonGuardarPropiedad.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar cambios';
     botonCancelarEdicion.classList.remove("oculto");
@@ -266,16 +359,22 @@ function renderizarPropiedadesAdmin() {
     }
 
     todasLasPropiedades.forEach(function (propiedad) {
-        const videoTexto = propiedad.video ? "<p>Incluye video</p>" : "";
+        const videoTexto = propiedad.video ? "<p>Incluye video</p>" : "<p>Sin video</p>";
+        const videoPreview = propiedad.video ? `
+            <video class="admin-card-video" src="${propiedad.video}" controls></video>
+        ` : "";
         const origenTexto = propiedad.origen === "base" ? "Propiedad base" : "Propiedad admin";
 
         listaPropiedades.innerHTML += `
             <article class="admin-card">
-                <img src="${propiedad.imagenes[0]}" alt="${propiedad.titulo}">
+                <div class="admin-card-media">
+                    <img src="${propiedad.imagenes[0]}" alt="${propiedad.titulo}">
+                    ${videoPreview}
+                </div>
 
                 <div>
                     <h3>${propiedad.titulo}</h3>
-                    <p>${origenTexto}</p>
+                    <p class="admin-origen">${origenTexto}</p>
                     <p>${propiedad.precio}</p>
                     <p>${propiedad.ubicacion}</p>
                     <p>${propiedad.metros} · ${propiedad.tipo}</p>
@@ -309,13 +408,13 @@ formHero.addEventListener("submit", function (event) {
     };
 
     guardarHeroAdmin(hero);
-    mostrarMensaje(mensajeHero, "Hero guardado correctamente.");
+    mostrarMensaje(mensajeHero, "Hero guardado correctamente.", "exito");
 });
 
 botonRestaurarHero.addEventListener("click", function () {
     localStorage.removeItem(STORAGE_HERO);
     cargarHeroEnFormulario();
-    mostrarMensaje(mensajeHero, "Hero restaurado al contenido original.");
+    mostrarMensaje(mensajeHero, "Hero restaurado al contenido original.", "exito");
 });
 
 campos.imagenesArchivo.addEventListener("change", async function () {
@@ -323,20 +422,30 @@ campos.imagenesArchivo.addEventListener("change", async function () {
 
     if (archivos.length === 0) {
         imagenesBase64Pendientes = [];
+        renderizarPreviewImagenes();
         return;
     }
 
     imagenesBase64Pendientes = await Promise.all(archivos.map(convertirArchivoABase64));
-    mostrarMensaje(mensajeAdmin, archivos.length + " imagen/es listas para guardar.");
+    renderizarPreviewImagenes();
+    mostrarMensaje(mensajeAdmin, archivos.length + " imagen/es listas para guardar.", "exito");
+});
+
+campos.imagenes.addEventListener("input", function () {
+    renderizarPreviewImagenes();
+});
+
+campos.video.addEventListener("input", function () {
+    renderizarPreviewVideo();
 });
 
 formPropiedad.addEventListener("submit", function (event) {
     event.preventDefault();
 
-    const imagenes = obtenerImagenesDesdeCampo();
+    const errorValidacion = validarFormularioPropiedad();
 
-    if (imagenes.length === 0) {
-        mostrarMensaje(mensajeAdmin, "Agregá al menos una imagen o archivo.");
+    if (errorValidacion !== "") {
+        mostrarMensaje(mensajeAdmin, errorValidacion, "error");
         return;
     }
 
@@ -346,7 +455,7 @@ formPropiedad.addEventListener("submit", function (event) {
         const overrides = obtenerOverridesBase();
         overrides[propiedadEditandoId] = propiedad;
         guardarOverridesBase(overrides);
-        mostrarMensaje(mensajeAdmin, "Propiedad base actualizada en localStorage.");
+        mostrarMensaje(mensajeAdmin, "Propiedad base actualizada en localStorage.", "exito");
     } else if (propiedadEditandoId) {
         const propiedadesActualizadas = obtenerPropiedadesAdmin().map(function (item) {
             if (String(item.id) === String(propiedadEditandoId)) {
@@ -357,12 +466,12 @@ formPropiedad.addEventListener("submit", function (event) {
         });
 
         guardarPropiedadesAdmin(propiedadesActualizadas);
-        mostrarMensaje(mensajeAdmin, "Propiedad actualizada correctamente.");
+        mostrarMensaje(mensajeAdmin, "Propiedad actualizada correctamente.", "exito");
     } else {
         const propiedadesAdmin = obtenerPropiedadesAdmin();
         propiedadesAdmin.push(propiedad);
         guardarPropiedadesAdmin(propiedadesAdmin);
-        mostrarMensaje(mensajeAdmin, "Propiedad guardada correctamente.");
+        mostrarMensaje(mensajeAdmin, "Propiedad guardada correctamente.", "exito");
     }
 
     resetearFormularioPropiedad();
@@ -371,7 +480,7 @@ formPropiedad.addEventListener("submit", function (event) {
 
 botonCancelarEdicion.addEventListener("click", function () {
     resetearFormularioPropiedad();
-    mostrarMensaje(mensajeAdmin, "Edición cancelada.");
+    mostrarMensaje(mensajeAdmin, "Edición cancelada.", "exito");
 });
 
 listaPropiedades.addEventListener("click", function (event) {
@@ -391,17 +500,24 @@ listaPropiedades.addEventListener("click", function (event) {
     }
 
     if (origen === "base") {
+        const propiedadesEliminadas = obtenerPropiedadesBaseEliminadas();
         const overrides = obtenerOverridesBase();
+
+        if (!propiedadesEliminadas.includes(id)) {
+            propiedadesEliminadas.push(id);
+        }
+
         delete overrides[id];
+        guardarPropiedadesBaseEliminadas(propiedadesEliminadas);
         guardarOverridesBase(overrides);
-        mostrarMensaje(mensajeAdmin, "Cambios de la propiedad base eliminados.");
+        mostrarMensaje(mensajeAdmin, "Propiedad base eliminada del admin y de la landing.", "exito");
     } else {
         const propiedadesAdmin = obtenerPropiedadesAdmin().filter(function (propiedad) {
             return String(propiedad.id) !== String(id);
         });
 
         guardarPropiedadesAdmin(propiedadesAdmin);
-        mostrarMensaje(mensajeAdmin, "Propiedad eliminada.");
+        mostrarMensaje(mensajeAdmin, "Propiedad eliminada.", "exito");
     }
 
     if (String(propiedadEditandoId) === String(id)) {
@@ -412,5 +528,7 @@ listaPropiedades.addEventListener("click", function (event) {
 });
 
 cargarHeroEnFormulario();
+renderizarPreviewImagenes();
+renderizarPreviewVideo();
 renderizarPropiedadesAdmin();
 }
