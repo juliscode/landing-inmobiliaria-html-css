@@ -19,6 +19,7 @@
             <p>Panel admin de propiedades</p>
         </div>
 
+ HEAD
         <div class="admin-header-acciones">
             <a href="index.html" class="admin-link">
                 <i class="fa-solid fa-arrow-left"></i>
@@ -30,6 +31,17 @@
                 Cerrar sesión
             </button>
         </div>
+
+        <a href="index.html" class="admin-link">
+            <i class="fa-solid fa-arrow-left"></i>
+            Volver a la landing
+        </a>
+
+        <button type="button" id="logout-btn" class="admin-link">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Salir
+        </button>
+ f18dc42 (Integro Supabase auth storage y servicios)
     </header>
 
     <main class="admin-layout">
@@ -64,6 +76,11 @@
                 <label class="campo-completo">
                     URL de imagen/gif/video de fondo
                     <input type="text" id="hero-fondo" placeholder="assets/imagenes/hero-premium.gif" required>
+                </label>
+
+                <label class="campo-completo">
+                    Subir fondo desde la PC
+                    <input type="file" id="hero-fondo-archivo" accept="image/*,video/*">
                 </label>
 
                 <div class="admin-acciones-form">
@@ -141,12 +158,19 @@
                     <input type="text" id="video" placeholder="https://...">
                 </label>
 
+ HEAD
                 <div class="campo-completo admin-preview-bloque">
                     <p>Preview de video</p>
                     <div id="preview-video" class="admin-preview-video">
                         <span>No hay video cargado.</span>
                     </div>
                 </div>
+
+                <label class="campo-completo">
+                    Subir video desde la PC
+                    <input type="file" id="video-archivo" accept="video/*">
+                </label>
+ f18dc42 (Integro Supabase auth storage y servicios)
 
                 <div class="admin-acciones-form">
                     <button type="submit" class="admin-boton" id="boton-guardar-propiedad">
@@ -169,10 +193,21 @@
                 <span id="contador-propiedades">0</span>
             </div>
 
+            <button type="button" id="migrar-base-btn" class="admin-boton-secundario">
+                Migrar propiedades base a Supabase
+            </button>
+
             <div id="lista-propiedades" class="admin-lista"></div>
         </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config/supabaseConfig.js"></script>
+    <script src="services/supabaseClient.js"></script>
+    <script src="services/storageService.js"></script>
+    <script src="services/authService.js"></script>
+    <script src="services/propertiesService.js"></script>
+    <script src="services/heroService.js"></script>
     <script src="data/propiedades.js"></script>
     <script src="admin.js"></script>
 </body>

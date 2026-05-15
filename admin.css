@@ -52,6 +52,8 @@ body {
     text-decoration: none;
     font-weight: bold;
     transition: all 0.3s;
+    cursor: pointer;
+    background-color: var(--color-blanco);
 }
 
 .admin-logout {
@@ -514,4 +516,29 @@ body {
     .login-admin-panel {
         padding: 26px;
     }
+}
+
+.login-layout {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
+.login-panel {
+    width: min(460px, 100%);
+}
+
+.login-panel h1 {
+    margin: 0 0 8px;
+    letter-spacing: 1px;
+}
+
+.login-panel p {
+    color: #555;
+}
+
+.login-form {
+    grid-template-columns: 1fr;
+    margin-top: 24px;
 }

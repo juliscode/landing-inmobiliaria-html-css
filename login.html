@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login admin</title>
+    <link rel="stylesheet" href="admin.css">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    >
+</head>
+
+<body>
+    <main class="login-layout">
+        <section class="admin-panel login-panel">
+            <h1>DIVARVARO</h1>
+            <p>Ingresá para administrar propiedades.</p>
+
+            <form id="login-form" class="admin-form login-form">
+                <label class="campo-completo">
+                    Email
+                    <input type="email" id="login-email" placeholder="admin@email.com" required>
+                </label>
+
+                <label class="campo-completo">
+                    Contraseña
+                    <input type="password" id="login-password" placeholder="••••••••">
+                </label>
+
+                <button type="submit" class="admin-boton">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    Ingresar
+                </button>
+            </form>
+
+            <p id="login-mensaje" class="mensaje-admin"></p>
+
+            <a href="index.html" class="admin-link">
+                Volver a la landing
+            </a>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config/supabaseConfig.js"></script>
+    <script src="services/supabaseClient.js"></script>
+    <script src="services/authService.js"></script>
+    <script src="login.js"></script>
+</body>
+
+</html>

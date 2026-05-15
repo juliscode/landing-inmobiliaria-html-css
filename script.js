@@ -3,7 +3,28 @@ const heroSubtitulo = document.querySelector("#hero-subtitulo");
 const botonHero = document.querySelector(".boton-hero");
 const heroMediaImagen = document.querySelector("#hero-media-imagen");
 const heroMediaVideo = document.querySelector("#hero-media-video");
+const contenedorPropiedades = document.querySelector("#contenedor-propiedades");
+const buscador = document.querySelector("#buscador");
+const botonesFiltro = document.querySelectorAll(".filtro-btn");
+const loader = document.querySelector("#loader");
+const modal = document.querySelector("#modal");
+const modalTitulo = document.querySelector("#modal-titulo");
+const modalPrecio = document.querySelector("#modal-precio");
+const modalUbicacion = document.querySelector("#modal-ubicacion");
+const modalMetros = document.querySelector("#modal-metros");
+const modalTipo = document.querySelector("#modal-tipo");
+const modalWhatsapp = document.querySelector("#modal-whatsapp");
+const modalMapa = document.querySelector("#modal-mapa");
+const modalFavorito = document.querySelector("#modal-favorito");
+const modalImagen = document.querySelector("#modal-imagen");
+const modalVideo = document.querySelector("#modal-video");
+const cerrarModal = document.querySelector("#cerrar-modal");
+const botonAnterior = document.querySelector("#anterior-img");
+const botonSiguiente = document.querySelector("#siguiente-img");
+const menuToggle = document.querySelector(".menu-toggle");
+const navLinks = document.querySelector(".nav-links");
 
+ HEAD
 const HERO_DEFAULT = {
     titulo: heroTitulo.textContent,
     subtitulo: heroSubtitulo.textContent,
@@ -35,6 +56,13 @@ const propiedadesBase = propiedades.map(function (propiedad, index) {
 const propiedadesAdmin = JSON.parse(localStorage.getItem("propiedadesAdmin")) || [];
 const propiedadesDisponibles = propiedadesBase.concat(propiedadesAdmin);
 
+let propiedadesDisponibles = [];
+let filtroActual = "todas";
+let medioActual = 0;
+let mediosActuales = [];
+let favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
+ f18dc42 (Integro Supabase auth storage y servicios)
+
 botonHero.addEventListener("click", function () {
     const seccionPropiedades = document.querySelector("#propiedades");
 
@@ -42,37 +70,6 @@ botonHero.addEventListener("click", function () {
         behavior: "smooth"
     });
 });
-
-function aplicarHeroDesdeStorage() {
-    const heroGuardado = JSON.parse(localStorage.getItem("heroAdmin")) || HERO_DEFAULT;
-
-    heroTitulo.textContent = heroGuardado.titulo || HERO_DEFAULT.titulo;
-    heroSubtitulo.textContent = heroGuardado.subtitulo || HERO_DEFAULT.subtitulo;
-    botonHero.textContent = heroGuardado.boton || HERO_DEFAULT.boton;
-
-    if (heroGuardado.tipoFondo === "video") {
-        heroMediaImagen.style.display = "none";
-        heroMediaVideo.style.display = "block";
-        heroMediaVideo.src = heroGuardado.fondo || HERO_DEFAULT.fondo;
-        heroMediaVideo.play().catch(function () {});
-        return;
-    }
-
-    heroMediaVideo.pause();
-    heroMediaVideo.removeAttribute("src");
-    heroMediaVideo.style.display = "none";
-    heroMediaImagen.style.display = "block";
-    heroMediaImagen.src = heroGuardado.fondo || HERO_DEFAULT.fondo;
-}
-const contenedorPropiedades = document.querySelector("#contenedor-propiedades");
-
-const buscador = document.querySelector("#buscador");
-
-const botonesFiltro = document.querySelectorAll(".filtro-btn");
-
-const loader = document.querySelector("#loader");
-
-marcarFiltroActivo(botonesFiltro[0]);
 
 function crearUrlMapa(ubicacion) {
     const busqueda = encodeURIComponent(ubicacion + ", Tucumán, Argentina");
@@ -140,43 +137,65 @@ function obtenerMediosPropiedad(propiedad) {
     return medios;
 }
 
-function mostrarPropiedades(lista) {
+function aplicarHero(hero) {
+    const heroFinal = hero || window.heroService.getDefaultHero();
 
+    heroTitulo.textContent = heroFinal.titulo;
+    heroSubtitulo.textContent = heroFinal.subtitulo;
+    botonHero.textContent = heroFinal.boton;
+
+    if (heroFinal.tipoFondo === "video") {
+        heroMediaImagen.style.display = "none";
+        heroMediaVideo.style.display = "block";
+        heroMediaVideo.src = heroFinal.fondo;
+        heroMediaVideo.play().catch(function () {});
+        return;
+    }
+
+    heroMediaVideo.pause();
+    heroMediaVideo.removeAttribute("src");
+    heroMediaVideo.style.display = "none";
+    heroMediaImagen.style.display = "block";
+    heroMediaImagen.src = heroFinal.fondo;
+}
+
+function obtenerPropiedadesFiltradas() {
+    const texto = buscador.value.toLowerCase();
+
+    return propiedadesDisponibles.filter(function (propiedad) {
+        const coincideTexto = propiedad.titulo.toLowerCase().includes(texto);
+        const coincideFiltro = filtroActual === "todas" || propiedad.tipo === filtroActual;
+
+        return coincideTexto && coincideFiltro;
+    });
+}
+
+function mostrarPropiedades(lista) {
     contenedorPropiedades.innerHTML = "";
 
     if (lista.length === 0) {
-    contenedorPropiedades.innerHTML = `
-        <p class="mensaje-vacio">
-            No encontramos propiedades con esa búsqueda.
-        </p>
-    `;
+        contenedorPropiedades.innerHTML = `
+            <p class="mensaje-vacio">
+                No encontramos propiedades con esa búsqueda.
+            </p>
+        `;
 
-    return;
-}
+        return;
+    }
 
     lista.forEach(function (propiedad) {
-
         contenedorPropiedades.innerHTML += `
             <div class="card">
-
                 <img src="${propiedad.imagenes[0]}" alt="${propiedad.titulo}">
-
                 <h3>${propiedad.titulo}</h3>
-
                 <p class="favorito" data-titulo="${propiedad.titulo}">
                     ${obtenerIconoFavorito(propiedad.titulo)}
                 </p>
-
                 <p>${propiedad.precio}</p>
-
                 <p>${propiedad.ubicacion}</p>
-
                 <p>${propiedad.metros}</p>
-
                 <p>${propiedad.tipo}</p>
-
                 <div class="card-acciones">
-
                     <button 
                         class="boton-principal boton-ver-mas"
                         data-titulo="${propiedad.titulo}"
@@ -199,71 +218,15 @@ function mostrarPropiedades(lista) {
                     >
                         Ver zona
                     </a>
-
                 </div>
-
             </div>
         `;
     });
 }
 
-loader.style.display = "block";
-
-setTimeout(function () {
-
-    loader.style.display = "none";
-
-    aplicarHeroDesdeStorage();
-    mostrarPropiedades(propiedadesDisponibles);
-
-}, 1500);
-
-buscador.addEventListener("input", function () {
-
-    const texto = buscador.value.toLowerCase();
-
-    const propiedadesFiltradas = propiedadesDisponibles.filter(function (propiedad) {
-
-        return propiedad.titulo.toLowerCase().includes(texto);
-
-    });
-
-    mostrarPropiedades(propiedadesFiltradas);
-
-});
-const modal = document.querySelector("#modal");
-
-const modalTitulo = document.querySelector("#modal-titulo");
-
-const modalPrecio = document.querySelector("#modal-precio");
-
-const modalUbicacion = document.querySelector("#modal-ubicacion");
-
-const modalMetros = document.querySelector("#modal-metros");
-
-const modalTipo = document.querySelector("#modal-tipo");
-
-const modalWhatsapp = document.querySelector("#modal-whatsapp");
-
-const modalMapa = document.querySelector("#modal-mapa");
-
-const modalFavorito = document.querySelector("#modal-favorito");
-
-const modalImagen = document.querySelector("#modal-imagen");
-
-const modalVideo = document.querySelector("#modal-video");
-
-let medioActual = 0;
-
-let mediosActuales = [];
-
-let favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
-
-const cerrarModal = document.querySelector("#cerrar-modal");
-
-const botonAnterior = document.querySelector("#anterior-img");
-
-const botonSiguiente = document.querySelector("#siguiente-img");
+function refrescarPropiedades() {
+    mostrarPropiedades(obtenerPropiedadesFiltradas());
+}
 
 function abrirModal() {
     modal.classList.add("abierto");
@@ -300,22 +263,37 @@ function mostrarMedioActual() {
     modalImagen.src = medio.src;
 }
 
+async function inicializarLanding() {
+    loader.style.display = "block";
+
+    try {
+        const hero = await window.heroService.getHero();
+        propiedadesDisponibles = await window.propertiesService.listProperties();
+
+        aplicarHero(hero);
+        refrescarPropiedades();
+    } catch (error) {
+        console.error(error);
+        contenedorPropiedades.innerHTML = `
+            <p class="mensaje-vacio">
+                No pudimos cargar las propiedades. Intentá nuevamente más tarde.
+            </p>
+        `;
+    } finally {
+        loader.style.display = "none";
+    }
+}
+
+buscador.addEventListener("input", refrescarPropiedades);
+
 document.addEventListener("click", function (event) {
-
     if (event.target.classList.contains("boton-ver-mas")) {
-
         const titulo = event.target.dataset.titulo;
-
         const precio = event.target.dataset.precio;
-
         const ubicacion = event.target.dataset.ubicacion;
-
         const metros = event.target.dataset.metros;
-
         const tipo = event.target.dataset.tipo;
-
         const whatsapp = event.target.dataset.whatsapp;
-
         const imagenes = JSON.parse(event.target.dataset.imagenes);
         const video = event.target.dataset.video;
 
@@ -325,41 +303,24 @@ document.addEventListener("click", function (event) {
         });
 
         medioActual = 0;
-
         modalTitulo.textContent = titulo;
-
         modalPrecio.textContent = precio;
-
         modalUbicacion.textContent = "Ubicación: " + ubicacion;
-
         modalMetros.textContent = "Metros: " + metros;
-
         modalTipo.textContent = "Operación: " + tipo;
-
         modalWhatsapp.href = whatsapp;
-
         modalMapa.href = crearUrlMapa(ubicacion);
-
         modalFavorito.dataset.titulo = titulo;
-
         modalFavorito.innerHTML = obtenerIconoFavorito(titulo);
-
         modalImagen.alt = titulo;
         mostrarMedioActual();
-
         abrirModal();
     }
-
 });
 
-cerrarModal.addEventListener("click", function () {
-
-    cerrarModalPropiedad();
-
-});
+cerrarModal.addEventListener("click", cerrarModalPropiedad);
 
 modalFavorito.addEventListener("click", function () {
-
     const titulo = modalFavorito.dataset.titulo;
 
     if (!titulo) {
@@ -368,57 +329,33 @@ modalFavorito.addEventListener("click", function () {
 
     alternarFavorito(titulo);
     actualizarIconosFavorito(titulo);
-
 });
 
 modal.addEventListener("click", function (event) {
-
     if (event.target === modal) {
         cerrarModalPropiedad();
     }
-
 });
 
 document.addEventListener("keydown", function (event) {
-
     if (event.key === "Escape" && modal.classList.contains("abierto")) {
         cerrarModalPropiedad();
     }
-
 });
-const menuToggle = document.querySelector(".menu-toggle");
-const navLinks = document.querySelector(".nav-links");
 
 menuToggle.addEventListener("click", function () {
     navLinks.classList.toggle("activo");
 });
+
 botonesFiltro.forEach(function (boton) {
-
     boton.addEventListener("click", function () {
-
-        const filtro = boton.dataset.filtro;
+        filtroActual = boton.dataset.filtro;
         marcarFiltroActivo(boton);
-
-        if (filtro === "todas") {
-
-            mostrarPropiedades(propiedadesDisponibles);
-
-            return;
-        }
-
-        const propiedadesFiltradas = propiedadesDisponibles.filter(function (propiedad) {
-
-            return propiedad.tipo === filtro;
-
-        });
-
-        mostrarPropiedades(propiedadesFiltradas);
-
+        refrescarPropiedades();
     });
-
 });
-botonSiguiente.addEventListener("click", function () {
 
+botonSiguiente.addEventListener("click", function () {
     if (mediosActuales.length === 0) {
         return;
     }
@@ -430,10 +367,9 @@ botonSiguiente.addEventListener("click", function () {
     }
 
     mostrarMedioActual();
-
 });
-botonAnterior.addEventListener("click", function () {
 
+botonAnterior.addEventListener("click", function () {
     if (mediosActuales.length === 0) {
         return;
     }
@@ -445,20 +381,18 @@ botonAnterior.addEventListener("click", function () {
     }
 
     mostrarMedioActual();
-
 });
-document.addEventListener("click", function (event) {
 
+document.addEventListener("click", function (event) {
     const favoritoElemento = event.target.closest(".favorito");
 
     if (favoritoElemento) {
-
         const titulo = favoritoElemento.dataset.titulo;
 
         alternarFavorito(titulo);
         actualizarIconosFavorito(titulo);
-
-        console.log(favoritos);
     }
-
 });
+
+marcarFiltroActivo(botonesFiltro[0]);
+inicializarLanding();
