@@ -1,54 +1,7 @@
-const ADMIN_AUTH_STORAGE = "adminSesionActiva";
-const ADMIN_CREDENCIALES = {
-    usuario: "admin",
-    password: "admin123"
-};
-
-const formLoginAdmin = document.querySelector("#form-login-admin");
-const mensajeLoginAdmin = document.querySelector("#mensaje-login-admin");
-const botonCerrarSesionAdmin = document.querySelector("#cerrar-sesion-admin");
-const esPaginaAdmin = document.querySelector(".admin-layout") !== null;
-const esPaginaLoginAdmin = formLoginAdmin !== null;
-
-function sesionAdminActiva() {
-    return localStorage.getItem(ADMIN_AUTH_STORAGE) === "true";
-}
-
-if (esPaginaAdmin && !sesionAdminActiva()) {
-    window.location.href = "login-admin.html";
-}
-
-if (esPaginaLoginAdmin && sesionAdminActiva()) {
-    window.location.href = "admin.html";
-}
-
-if (formLoginAdmin) {
-    formLoginAdmin.addEventListener("submit", function (event) {
-        event.preventDefault();
-
-        const usuario = document.querySelector("#login-usuario").value.trim();
-        const password = document.querySelector("#login-password").value.trim();
-
-        if (usuario === ADMIN_CREDENCIALES.usuario && password === ADMIN_CREDENCIALES.password) {
-            localStorage.setItem(ADMIN_AUTH_STORAGE, "true");
-            window.location.href = "admin.html";
-            return;
-        }
-
-        mensajeLoginAdmin.textContent = "Usuario o contraseña incorrectos.";
-    });
-}
-
-if (botonCerrarSesionAdmin) {
-    botonCerrarSesionAdmin.addEventListener("click", function () {
-        localStorage.removeItem(ADMIN_AUTH_STORAGE);
-        window.location.href = "login-admin.html";
-    });
-}
-
 const formHero = document.querySelector("#form-hero");
 const mensajeHero = document.querySelector("#mensaje-hero");
 const botonRestaurarHero = document.querySelector("#restaurar-hero");
+
 const formPropiedad = document.querySelector("#form-propiedad");
 const listaPropiedades = document.querySelector("#lista-propiedades");
 const contadorPropiedades = document.querySelector("#contador-propiedades");
@@ -56,13 +9,12 @@ const mensajeAdmin = document.querySelector("#mensaje-admin");
 const tituloFormPropiedad = document.querySelector("#titulo-form-propiedad");
 const botonGuardarPropiedad = document.querySelector("#boton-guardar-propiedad");
 const botonCancelarEdicion = document.querySelector("#cancelar-edicion");
-HEAD
+
 const previewImagenes = document.querySelector("#preview-imagenes");
 const previewVideo = document.querySelector("#preview-video");
 
 const logoutBtn = document.querySelector("#logout-btn");
 const migrarBaseBtn = document.querySelector("#migrar-base-btn");
-f18dc42 (Integro Supabase auth storage y servicios)
 
 const camposHero = {
     titulo: document.querySelector("#hero-titulo"),
@@ -86,101 +38,25 @@ const campos = {
     videoArchivo: document.querySelector("#video-archivo")
 };
 
-HEAD
-const STORAGE_PROPIEDADES = "propiedadesAdmin";
-const STORAGE_OVERRIDES = "propiedadesBaseOverrides";
-const STORAGE_BASE_ELIMINADAS = "propiedadesBaseEliminadas";
-const STORAGE_HERO = "heroAdmin";
-
-const HERO_DEFAULT = {
-    titulo: "Encontra tu proximo Hogar",
-    subtitulo: "Propiedades en venta y alquiler en tu ciudad",
-    boton: "Ver propiedades",
-    fondo: "assets/imagenes/hero-premium.gif",
-    tipoFondo: "gif"
-};
-
-let propiedadEditandoId = null;
-let propiedadEditandoOrigen = null;
-let imagenesBase64Pendientes = [];
-
-if (formHero && formPropiedad && sesionAdminActiva()) {
-
-function crearIdBase(index) {
-    return "base-" + index;
-}
-
-function obtenerPropiedadesBase() {
-    const overrides = obtenerOverridesBase();
-    const propiedadesEliminadas = obtenerPropiedadesBaseEliminadas();
-
-    return propiedades.map(function (propiedad, index) {
-        const id = crearIdBase(index);
-        const propiedadBase = Object.assign({}, propiedad, {
-            id: id,
-            origen: "base"
-        });
-
-        if (overrides[id]) {
-            return Object.assign({}, propiedadBase, overrides[id], {
-                id: id,
-                origen: "base"
-            });
-        }
-
-        return propiedadBase;
-    }).filter(function (propiedad) {
-        return !propiedadesEliminadas.includes(propiedad.id);
-    });
-}
-
-function obtenerPropiedadesAdmin() {
-    return JSON.parse(localStorage.getItem(STORAGE_PROPIEDADES)) || [];
-}
-
-function guardarPropiedadesAdmin(propiedadesAdmin) {
-    localStorage.setItem(STORAGE_PROPIEDADES, JSON.stringify(propiedadesAdmin));
-}
-
-function obtenerOverridesBase() {
-    return JSON.parse(localStorage.getItem(STORAGE_OVERRIDES)) || {};
-}
-
-function guardarOverridesBase(overrides) {
-    localStorage.setItem(STORAGE_OVERRIDES, JSON.stringify(overrides));
-}
-
-function obtenerPropiedadesBaseEliminadas() {
-    return JSON.parse(localStorage.getItem(STORAGE_BASE_ELIMINADAS)) || [];
-}
-
-function guardarPropiedadesBaseEliminadas(propiedadesEliminadas) {
-    localStorage.setItem(STORAGE_BASE_ELIMINADAS, JSON.stringify(propiedadesEliminadas));
-}
-
-function obtenerTodasLasPropiedades() {
-    return obtenerPropiedadesBase().concat(obtenerPropiedadesAdmin());
-}
-
-function obtenerHeroAdmin() {
-    return JSON.parse(localStorage.getItem(STORAGE_HERO)) || HERO_DEFAULT;
-}
-
-function guardarHeroAdmin(hero) {
-    localStorage.setItem(STORAGE_HERO, JSON.stringify(hero));
-}
-
-function obtenerImagenesManuales() {
-
 let propiedadEditando = null;
 let propiedadesActuales = [];
 
-function mostrarMensaje(elemento, texto) {
+function mostrarMensaje(elemento, texto, tipo) {
+    if (!elemento) {
+        return;
+    }
+
     elemento.textContent = texto;
+    elemento.classList.remove("mensaje-error", "mensaje-exito");
+
+    if (tipo) {
+        elemento.classList.add("mensaje-" + tipo);
+    }
 }
 
 function setGuardando(guardando) {
     botonGuardarPropiedad.disabled = guardando;
+
     botonGuardarPropiedad.innerHTML = guardando
         ? '<i class="fa-solid fa-spinner"></i> Guardando...'
         : propiedadEditando
@@ -189,7 +65,6 @@ function setGuardando(guardando) {
 }
 
 function obtenerImagenesDesdeCampo() {
-f18dc42 (Integro Supabase auth storage y servicios)
     return campos.imagenes.value
         .split("\n")
         .map(function (imagen) {
@@ -198,13 +73,46 @@ f18dc42 (Integro Supabase auth storage y servicios)
         .filter(function (imagen) {
             return imagen !== "";
         });
-HEAD
 }
 
-function obtenerImagenesDesdeCampo() {
-    return obtenerImagenesManuales().concat(imagenesBase64Pendientes);
+function archivoABase64(archivo) {
+    return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
 
->>>>>>> f18dc42 (Integro Supabase auth storage y servicios)
+        reader.onload = function () {
+            resolve(reader.result);
+        };
+
+        reader.onerror = function () {
+            reject(new Error("No se pudo leer el archivo."));
+        };
+
+        reader.readAsDataURL(archivo);
+    });
+}
+
+async function subirArchivosOFallback(archivos, bucket, carpeta) {
+    if (archivos.length === 0) {
+        return [];
+    }
+
+    if (window.storageService && window.storageService.uploadMany) {
+        return window.storageService.uploadMany(archivos, bucket, carpeta);
+    }
+
+    return Promise.all(archivos.map(archivoABase64));
+}
+
+async function subirArchivoOFallback(archivo, bucket, carpeta) {
+    if (!archivo) {
+        return "";
+    }
+
+    if (window.storageService && window.storageService.uploadFile) {
+        return window.storageService.uploadFile(archivo, bucket, carpeta);
+    }
+
+    return archivoABase64(archivo);
 }
 
 async function obtenerImagenesFinales() {
@@ -215,8 +123,8 @@ async function obtenerImagenesFinales() {
         return imagenesTexto;
     }
 
-    const bucket = window.APP_CONFIG.STORAGE_BUCKETS.propertyImages;
-    const imagenesSubidas = await window.storageService.uploadMany(archivos, bucket, "properties");
+    const bucket = window.APP_CONFIG?.STORAGE_BUCKETS?.propertyImages || "property-images";
+    const imagenesSubidas = await subirArchivosOFallback(archivos, bucket, "properties");
 
     return imagenesTexto.concat(imagenesSubidas);
 }
@@ -228,9 +136,9 @@ async function obtenerVideoFinal() {
         return campos.video.value.trim();
     }
 
-    const bucket = window.APP_CONFIG.STORAGE_BUCKETS.propertyVideos;
+    const bucket = window.APP_CONFIG?.STORAGE_BUCKETS?.propertyVideos || "property-videos";
 
-    return window.storageService.uploadFile(archivo, bucket, "properties");
+    return subirArchivoOFallback(archivo, bucket, "properties");
 }
 
 async function obtenerFondoHeroFinal() {
@@ -240,9 +148,9 @@ async function obtenerFondoHeroFinal() {
         return camposHero.fondo.value.trim();
     }
 
-    const bucket = window.APP_CONFIG.STORAGE_BUCKETS.heroMedia;
+    const bucket = window.APP_CONFIG?.STORAGE_BUCKETS?.heroMedia || "hero-media";
 
-    return window.storageService.uploadFile(archivo, bucket, "hero");
+    return subirArchivoOFallback(archivo, bucket, "hero");
 }
 
 function crearPropiedadDesdeFormulario(imagenes, video) {
@@ -260,54 +168,6 @@ function crearPropiedadDesdeFormulario(imagenes, video) {
         destacada: true,
         updated_at: new Date().toISOString()
     };
-HEAD
-
-    if (campos.video.value.trim() !== "") {
-        propiedad.video = campos.video.value.trim();
-    }
-
-    return propiedad;
-}
-
-function mostrarMensaje(elemento, texto, tipo) {
-    elemento.textContent = texto;
-    elemento.classList.remove("mensaje-error", "mensaje-exito");
-
-    if (tipo) {
-        elemento.classList.add("mensaje-" + tipo);
-    }
-}
-
-function renderizarPreviewImagenes() {
-    const imagenes = obtenerImagenesDesdeCampo();
-
-    if (imagenes.length === 0) {
-        previewImagenes.innerHTML = "<span>No hay imágenes seleccionadas.</span>";
-        return;
-    }
-
-    previewImagenes.innerHTML = "";
-
-    imagenes.forEach(function (imagen) {
-        previewImagenes.innerHTML += `
-            <figure class="admin-preview-item">
-                <img src="${imagen}" alt="Preview de propiedad">
-            </figure>
-        `;
-    });
-}
-
-function renderizarPreviewVideo() {
-    const video = campos.video.value.trim();
-
-    if (video === "") {
-        previewVideo.innerHTML = "<span>No hay video cargado.</span>";
-        return;
-    }
-
-    previewVideo.innerHTML = `
-        <video src="${video}" controls></video>
-    `;
 }
 
 function validarFormularioPropiedad() {
@@ -339,30 +199,66 @@ function validarFormularioPropiedad() {
         return "Agregá un link de WhatsApp válido.";
     }
 
-    if (obtenerImagenesDesdeCampo().length === 0) {
+    if (obtenerImagenesDesdeCampo().length === 0 && campos.imagenesArchivo.files.length === 0) {
         return "Agregá al menos una imagen por URL o desde tu computadora.";
     }
 
     return "";
 }
 
-function cargarHeroEnFormulario() {
-    const hero = obtenerHeroAdmin();
+function renderizarPreviewImagenes() {
+    const imagenesTexto = obtenerImagenesDesdeCampo();
+    const archivos = Array.from(campos.imagenesArchivo.files);
 
-    camposHero.titulo.value = hero.titulo;
-    camposHero.subtitulo.value = hero.subtitulo;
-    camposHero.boton.value = hero.boton;
-    camposHero.tipoFondo.value = hero.tipoFondo;
-    camposHero.fondo.value = hero.fondo;
+    if (imagenesTexto.length === 0 && archivos.length === 0) {
+        previewImagenes.innerHTML = "<span>No hay imágenes seleccionadas.</span>";
+        return;
+    }
 
-f18dc42 (Integro Supabase auth storage y servicios)
+    previewImagenes.innerHTML = "";
+
+    imagenesTexto.forEach(function (imagen) {
+        previewImagenes.innerHTML += `
+            <figure class="admin-preview-item">
+                <img src="${imagen}" alt="Preview de propiedad">
+            </figure>
+        `;
+    });
+
+    archivos.forEach(function (archivo) {
+        const urlTemporal = URL.createObjectURL(archivo);
+
+        previewImagenes.innerHTML += `
+            <figure class="admin-preview-item">
+                <img src="${urlTemporal}" alt="Preview de propiedad">
+            </figure>
+        `;
+    });
+}
+
+function renderizarPreviewVideo() {
+    const videoUrl = campos.video.value.trim();
+    const archivo = campos.videoArchivo.files[0];
+
+    if (!videoUrl && !archivo) {
+        previewVideo.innerHTML = "<span>No hay video cargado.</span>";
+        return;
+    }
+
+    const fuente = archivo ? URL.createObjectURL(archivo) : videoUrl;
+
+    previewVideo.innerHTML = `
+        <video src="${fuente}" controls></video>
+    `;
 }
 
 function resetearFormularioPropiedad() {
     propiedadEditando = null;
     formPropiedad.reset();
+
     renderizarPreviewImagenes();
     renderizarPreviewVideo();
+
     tituloFormPropiedad.textContent = "Cargar propiedad";
     botonGuardarPropiedad.innerHTML = '<i class="fa-solid fa-plus"></i> Guardar propiedad';
     botonCancelarEdicion.classList.add("oculto");
@@ -370,6 +266,7 @@ function resetearFormularioPropiedad() {
 
 function cargarPropiedadParaEditar(propiedad) {
     propiedadEditando = propiedad;
+
     campos.titulo.value = propiedad.titulo;
     campos.precio.value = propiedad.precio;
     campos.ubicacion.value = propiedad.ubicacion;
@@ -379,16 +276,19 @@ function cargarPropiedadParaEditar(propiedad) {
     campos.imagenes.value = propiedad.imagenes.join("\n");
     campos.video.value = propiedad.video || "";
     campos.imagenesArchivo.value = "";
-HEAD
+    campos.videoArchivo.value = "";
+
     renderizarPreviewImagenes();
     renderizarPreviewVideo();
 
-    campos.videoArchivo.value = "";
-f18dc42 (Integro Supabase auth storage y servicios)
     tituloFormPropiedad.textContent = propiedad.origen === "base" ? "Editar propiedad base" : "Editar propiedad";
     botonGuardarPropiedad.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar cambios';
     botonCancelarEdicion.classList.remove("oculto");
-    window.scrollTo({ top: formPropiedad.offsetTop - 120, behavior: "smooth" });
+
+    window.scrollTo({
+        top: formPropiedad.offsetTop - 120,
+        behavior: "smooth"
+    });
 }
 
 function renderizarPropiedadesAdmin() {
@@ -405,23 +305,26 @@ function renderizarPropiedadesAdmin() {
         return;
     }
 
-HEAD
-    todasLasPropiedades.forEach(function (propiedad) {
+    propiedadesActuales.forEach(function (propiedad, index) {
         const videoTexto = propiedad.video ? "<p>Incluye video</p>" : "<p>Sin video</p>";
         const videoPreview = propiedad.video ? `
             <video class="admin-card-video" src="${propiedad.video}" controls></video>
         ` : "";
-        const origenTexto = propiedad.origen === "base" ? "Propiedad base" : "Propiedad admin";
 
-    propiedadesActuales.forEach(function (propiedad, index) {
-        const videoTexto = propiedad.video ? "<p>Incluye video</p>" : "";
-        const origenTexto = propiedad.origen === "base" ? "Propiedad base" : propiedad.origen === "supabase" ? "Supabase" : "Propiedad admin";
-f18dc42 (Integro Supabase auth storage y servicios)
+        const origenTexto = propiedad.origen === "base"
+            ? "Propiedad base"
+            : propiedad.origen === "supabase"
+                ? "Supabase"
+                : "Propiedad admin";
+
+        const imagenPrincipal = propiedad.imagenes && propiedad.imagenes.length > 0
+            ? propiedad.imagenes[0]
+            : "";
 
         listaPropiedades.innerHTML += `
             <article class="admin-card">
                 <div class="admin-card-media">
-                    <img src="${propiedad.imagenes[0]}" alt="${propiedad.titulo}">
+                    ${imagenPrincipal ? `<img src="${imagenPrincipal}" alt="${propiedad.titulo}">` : ""}
                     ${videoPreview}
                 </div>
 
@@ -462,6 +365,7 @@ async function cargarHeroEnFormulario() {
     camposHero.boton.value = hero.boton;
     camposHero.tipoFondo.value = hero.tipoFondo;
     camposHero.fondo.value = hero.fondo;
+    camposHero.archivoFondo.value = "";
 }
 
 formHero.addEventListener("submit", async function (event) {
@@ -469,6 +373,7 @@ formHero.addEventListener("submit", async function (event) {
 
     try {
         const fondo = await obtenerFondoHeroFinal();
+
         const hero = {
             id: "main",
             titulo: camposHero.titulo.value.trim(),
@@ -478,67 +383,53 @@ formHero.addEventListener("submit", async function (event) {
             fondo: fondo
         };
 
-HEAD
-    guardarHeroAdmin(hero);
-    mostrarMensaje(mensajeHero, "Hero guardado correctamente.", "exito");
-});
+        await window.heroService.saveHero(hero);
 
-botonRestaurarHero.addEventListener("click", function () {
-    localStorage.removeItem(STORAGE_HERO);
-    cargarHeroEnFormulario();
-    mostrarMensaje(mensajeHero, "Hero restaurado al contenido original.", "exito");
-});
+        camposHero.fondo.value = fondo;
+        camposHero.archivoFondo.value = "";
 
-campos.imagenesArchivo.addEventListener("change", async function () {
-    const archivos = Array.from(campos.imagenesArchivo.files);
-
-    if (archivos.length === 0) {
-        imagenesBase64Pendientes = [];
-        renderizarPreviewImagenes();
-        return;
+        mostrarMensaje(mensajeHero, "Hero guardado correctamente.", "exito");
+    } catch (error) {
+        mostrarMensaje(mensajeHero, "Error al guardar hero: " + error.message, "error");
     }
+});
 
-    imagenesBase64Pendientes = await Promise.all(archivos.map(convertirArchivoABase64));
+botonRestaurarHero.addEventListener("click", async function () {
+    try {
+        const hero = await window.heroService.restoreHero();
+
+        camposHero.titulo.value = hero.titulo;
+        camposHero.subtitulo.value = hero.subtitulo;
+        camposHero.boton.value = hero.boton;
+        camposHero.tipoFondo.value = hero.tipoFondo;
+        camposHero.fondo.value = hero.fondo;
+        camposHero.archivoFondo.value = "";
+
+        mostrarMensaje(mensajeHero, "Hero restaurado al contenido original.", "exito");
+    } catch (error) {
+        mostrarMensaje(mensajeHero, "Error al restaurar hero: " + error.message, "error");
+    }
+});
+
+campos.imagenesArchivo.addEventListener("change", function () {
     renderizarPreviewImagenes();
-    mostrarMensaje(mensajeAdmin, archivos.length + " imagen/es listas para guardar.", "exito");
 });
 
 campos.imagenes.addEventListener("input", function () {
     renderizarPreviewImagenes();
 });
 
+campos.videoArchivo.addEventListener("change", function () {
+    renderizarPreviewVideo();
+});
+
 campos.video.addEventListener("input", function () {
     renderizarPreviewVideo();
 });
 
-formPropiedad.addEventListener("submit", function (event) {
-
-        await window.heroService.saveHero(hero);
-        camposHero.fondo.value = fondo;
-        camposHero.archivoFondo.value = "";
-        mostrarMensaje(mensajeHero, "Hero guardado correctamente.");
-    } catch (error) {
-        mostrarMensaje(mensajeHero, "Error al guardar hero: " + error.message);
-    }
-});
-
-botonRestaurarHero.addEventListener("click", async function () {
-    const hero = await window.heroService.restoreHero();
-    camposHero.titulo.value = hero.titulo;
-    camposHero.subtitulo.value = hero.subtitulo;
-    camposHero.boton.value = hero.boton;
-    camposHero.tipoFondo.value = hero.tipoFondo;
-    camposHero.fondo.value = hero.fondo;
-    camposHero.archivoFondo.value = "";
-    mostrarMensaje(mensajeHero, "Hero restaurado al contenido original.");
-});
-
 formPropiedad.addEventListener("submit", async function (event) {
-f18dc42 (Integro Supabase auth storage y servicios)
     event.preventDefault();
-    setGuardando(true);
 
-HEAD
     const errorValidacion = validarFormularioPropiedad();
 
     if (errorValidacion !== "") {
@@ -546,50 +437,23 @@ HEAD
         return;
     }
 
+    setGuardando(true);
+
     try {
         const imagenes = await obtenerImagenesFinales();
-
-        if (imagenes.length === 0) {
-            mostrarMensaje(mensajeAdmin, "Agregá al menos una imagen o archivo.");
-            return;
-        }
-f18dc42 (Integro Supabase auth storage y servicios)
-
         const video = await obtenerVideoFinal();
         const propiedad = crearPropiedadDesdeFormulario(imagenes, video);
 
-HEAD
-    if (propiedadEditandoOrigen === "base") {
-        const overrides = obtenerOverridesBase();
-        overrides[propiedadEditandoId] = propiedad;
-        guardarOverridesBase(overrides);
-        mostrarMensaje(mensajeAdmin, "Propiedad base actualizada en localStorage.", "exito");
-    } else if (propiedadEditandoId) {
-        const propiedadesActualizadas = obtenerPropiedadesAdmin().map(function (item) {
-            if (String(item.id) === String(propiedadEditandoId)) {
-                return propiedad;
-            }
-
-            return item;
-        });
-
-        guardarPropiedadesAdmin(propiedadesActualizadas);
-        mostrarMensaje(mensajeAdmin, "Propiedad actualizada correctamente.", "exito");
-    } else {
-        const propiedadesAdmin = obtenerPropiedadesAdmin();
-        propiedadesAdmin.push(propiedad);
-        guardarPropiedadesAdmin(propiedadesAdmin);
-        mostrarMensaje(mensajeAdmin, "Propiedad guardada correctamente.", "exito");
-
         await window.propertiesService.saveProperty(propiedad, propiedadEditando);
+
         resetearFormularioPropiedad();
         await cargarPropiedades();
-        mostrarMensaje(mensajeAdmin, "Propiedad guardada correctamente.");
+
+        mostrarMensaje(mensajeAdmin, "Propiedad guardada correctamente.", "exito");
     } catch (error) {
-        mostrarMensaje(mensajeAdmin, "Error al guardar: " + error.message);
+        mostrarMensaje(mensajeAdmin, "Error al guardar: " + error.message, "error");
     } finally {
         setGuardando(false);
-f18dc42 (Integro Supabase auth storage y servicios)
     }
 });
 
@@ -611,52 +475,24 @@ listaPropiedades.addEventListener("click", async function (event) {
         return;
     }
 
-HEAD
-    if (origen === "base") {
-        const propiedadesEliminadas = obtenerPropiedadesBaseEliminadas();
-        const overrides = obtenerOverridesBase();
-
-        if (!propiedadesEliminadas.includes(id)) {
-            propiedadesEliminadas.push(id);
-        }
-
-        delete overrides[id];
-        guardarPropiedadesBaseEliminadas(propiedadesEliminadas);
-        guardarOverridesBase(overrides);
-        mostrarMensaje(mensajeAdmin, "Propiedad base eliminada del admin y de la landing.", "exito");
-    } else {
-        const propiedadesAdmin = obtenerPropiedadesAdmin().filter(function (propiedad) {
-            return String(propiedad.id) !== String(id);
-        });
-
-        guardarPropiedadesAdmin(propiedadesAdmin);
-        mostrarMensaje(mensajeAdmin, "Propiedad eliminada.", "exito");
-
     if (botonAccion.dataset.accion === "editar") {
         cargarPropiedadParaEditar(propiedad);
         return;
-f18dc42 (Integro Supabase auth storage y servicios)
     }
 
     try {
         await window.propertiesService.deleteProperty(propiedad);
         await cargarPropiedades();
-        mostrarMensaje(mensajeAdmin, propiedad.origen === "base" ? "Cambios de la propiedad base eliminados." : "Propiedad eliminada.");
+
+        mostrarMensaje(mensajeAdmin, "Propiedad eliminada.", "exito");
 
         if (propiedadEditando && String(propiedadEditando.id) === String(propiedad.id)) {
             resetearFormularioPropiedad();
         }
     } catch (error) {
-        mostrarMensaje(mensajeAdmin, "Error al eliminar: " + error.message);
+        mostrarMensaje(mensajeAdmin, "Error al eliminar: " + error.message, "error");
     }
 });
-
-HEAD
-cargarHeroEnFormulario();
-renderizarPreviewImagenes();
-renderizarPreviewVideo();
-renderizarPropiedadesAdmin();
-}
 
 logoutBtn.addEventListener("click", async function () {
     await window.authService.signOut();
@@ -669,9 +505,10 @@ migrarBaseBtn.addEventListener("click", async function () {
     try {
         const total = await window.propertiesService.migrateBasePropertiesToSupabase();
         await cargarPropiedades();
-        mostrarMensaje(mensajeAdmin, total + " propiedad/es base migradas a Supabase.");
+
+        mostrarMensaje(mensajeAdmin, total + " propiedad/es base migradas a Supabase.", "exito");
     } catch (error) {
-        mostrarMensaje(mensajeAdmin, "No se pudo migrar: " + error.message);
+        mostrarMensaje(mensajeAdmin, "No se pudo migrar: " + error.message, "error");
     }
 });
 
@@ -682,9 +519,11 @@ async function iniciarAdmin() {
         return;
     }
 
+    renderizarPreviewImagenes();
+    renderizarPreviewVideo();
+
     await cargarHeroEnFormulario();
     await cargarPropiedades();
 }
 
 iniciarAdmin();
-f18dc42 (Integro Supabase auth storage y servicios)
