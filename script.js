@@ -24,44 +24,11 @@ const botonSiguiente = document.querySelector("#siguiente-img");
 const menuToggle = document.querySelector(".menu-toggle");
 const navLinks = document.querySelector(".nav-links");
 
- HEAD
-const HERO_DEFAULT = {
-    titulo: heroTitulo.textContent,
-    subtitulo: heroSubtitulo.textContent,
-    boton: botonHero.textContent.trim(),
-    fondo: heroMediaImagen.getAttribute("src"),
-    tipoFondo: "gif"
-};
-
-const overridesBase = JSON.parse(localStorage.getItem("propiedadesBaseOverrides")) || {};
-const propiedadesBaseEliminadas = JSON.parse(localStorage.getItem("propiedadesBaseEliminadas")) || [];
-const propiedadesBase = propiedades.map(function (propiedad, index) {
-    const id = "base-" + index;
-    const propiedadBase = Object.assign({}, propiedad, {
-        id: id,
-        origen: "base"
-    });
-
-    if (overridesBase[id]) {
-        return Object.assign({}, propiedadBase, overridesBase[id], {
-            id: id,
-            origen: "base"
-        });
-    }
-
-    return propiedadBase;
-}).filter(function (propiedad) {
-    return !propiedadesBaseEliminadas.includes(propiedad.id);
-});
-const propiedadesAdmin = JSON.parse(localStorage.getItem("propiedadesAdmin")) || [];
-const propiedadesDisponibles = propiedadesBase.concat(propiedadesAdmin);
-
 let propiedadesDisponibles = [];
 let filtroActual = "todas";
 let medioActual = 0;
 let mediosActuales = [];
 let favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
- f18dc42 (Integro Supabase auth storage y servicios)
 
 botonHero.addEventListener("click", function () {
     const seccionPropiedades = document.querySelector("#propiedades");
