@@ -32,6 +32,7 @@ let filtroActual = "todas";
 let medioActual = 0;
 let mediosActuales = [];
 let favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
+const imagenFallback = "assets/imagenes/casa.jpg";
 
 botonHero.addEventListener("click", function () {
     const seccionPropiedades = document.querySelector("#propiedades");
@@ -47,6 +48,63 @@ function crearUrlMapa(ubicacion) {
     return "https://www.google.com/maps/search/?api=1&query=" + busqueda;
 }
 
+function obtenerUrlSegura(valor, opciones) {
+    const urlTexto = String(valor || "").trim();
+    const configuracion = opciones || {};
+    const protocolosPermitidos = configuracion.protocolos || ["http:", "https:"];
+    const hostsPermitidos = configuracion.hosts || [];
+    const dataPermitida = configuracion.dataPermitida || [];
+
+    if (urlTexto === "") {
+        return "";
+    }
+
+    if (urlTexto.startsWith("data:")) {
+        const esDataValida = dataPermitida.some(function (tipo) {
+            return urlTexto.startsWith("data:" + tipo + "/");
+        });
+
+        return esDataValida ? urlTexto : "";
+    }
+
+    try {
+        const url = new URL(urlTexto, window.location.origin);
+
+        if (!protocolosPermitidos.includes(url.protocol)) {
+            return "";
+        }
+
+        if (hostsPermitidos.length > 0 && !hostsPermitidos.includes(url.hostname)) {
+            return "";
+        }
+
+        return url.href;
+    } catch (error) {
+        return "";
+    }
+}
+
+function obtenerUrlMediaSegura(valor, tipo) {
+    const dataPermitida = tipo === "video" ? ["video"] : ["image"];
+
+    return obtenerUrlSegura(valor, {
+        dataPermitida: dataPermitida
+    });
+}
+
+function obtenerUrlWhatsappSegura(valor) {
+    return obtenerUrlSegura(valor, {
+        hosts: ["wa.me", "api.whatsapp.com", "web.whatsapp.com"]
+    });
+}
+
+function obtenerImagenPrincipal(propiedad) {
+    const imagenes = Array.isArray(propiedad.imagenes) ? propiedad.imagenes : [];
+    const imagenSegura = obtenerUrlMediaSegura(imagenes[0], "imagen");
+
+    return imagenSegura || imagenFallback;
+}
+
 function marcarFiltroActivo(botonActivo) {
     botonesFiltro.forEach(function (boton) {
         boton.classList.remove("activo");
@@ -55,12 +113,13 @@ function marcarFiltroActivo(botonActivo) {
     botonActivo.classList.add("activo");
 }
 
-function obtenerIconoFavorito(titulo) {
-    if (favoritos.includes(titulo)) {
-        return '<i class="fa-solid fa-heart"></i>';
-    }
+function crearIconoFavorito(titulo) {
+    const icono = document.createElement("i");
+    icono.className = favoritos.includes(titulo)
+        ? "fa-solid fa-heart"
+        : "fa-regular fa-heart";
 
-    return '<i class="fa-regular fa-heart"></i>';
+    return icono;
 }
 
 function guardarFavoritos() {
@@ -80,27 +139,45 @@ function alternarFavorito(titulo) {
 }
 
 function actualizarIconosFavorito(titulo) {
-    document.querySelectorAll('.favorito[data-titulo="' + titulo + '"]').forEach(function (favoritoElemento) {
-        favoritoElemento.innerHTML = obtenerIconoFavorito(titulo);
+    document.querySelectorAll(".favorito").forEach(function (favoritoElemento) {
+        if (favoritoElemento.dataset.titulo === titulo) {
+            favoritoElemento.replaceChildren(crearIconoFavorito(titulo));
+        }
     });
 
     if (modalFavorito.dataset.titulo === titulo) {
-        modalFavorito.innerHTML = obtenerIconoFavorito(titulo);
+        modalFavorito.replaceChildren(crearIconoFavorito(titulo));
     }
 }
 
 function obtenerMediosPropiedad(propiedad) {
-    const medios = propiedad.imagenes.map(function (imagen) {
+    const imagenes = Array.isArray(propiedad.imagenes) ? propiedad.imagenes : [];
+    const medios = imagenes.map(function (imagen) {
         return {
             tipo: "imagen",
-            src: imagen
+            src: obtenerUrlMediaSegura(imagen, "imagen")
         };
+    }).filter(function (medio) {
+        return medio.src !== "";
     });
 
     if (propiedad.video) {
+        const videoSeguro = obtenerUrlMediaSegura(propiedad.video, "video");
+
+        if (!videoSeguro) {
+            return medios;
+        }
+
         medios.push({
             tipo: "video",
-            src: propiedad.video
+            src: videoSeguro
+        });
+    }
+
+    if (medios.length === 0) {
+        medios.push({
+            tipo: "imagen",
+            src: imagenFallback
         });
     }
 
@@ -123,13 +200,15 @@ function mostrarHeroDefault() {
 function aplicarHero(hero) {
     const heroDefault = window.heroService.getDefaultHero();
     const heroFinal = hero || heroDefault;
-    const fondoHero = heroFinal.fondo || heroDefault.fondo;
+    const tipoFondo = heroFinal.tipoFondo === "video" ? "video" : "imagen";
+    const fondoSeguro = obtenerUrlMediaSegura(heroFinal.fondo, tipoFondo);
+    const fondoHero = fondoSeguro || heroDefault.fondo;
 
     heroTitulo.textContent = heroFinal.titulo || heroDefault.titulo;
     heroSubtitulo.textContent = heroFinal.subtitulo || heroDefault.subtitulo;
     botonHero.textContent = heroFinal.boton || heroDefault.boton;
 
-    if (heroFinal.tipoFondo === "video") {
+    if (tipoFondo === "video" && fondoSeguro) {
         heroMediaImagen.style.display = "none";
         heroMediaVideo.style.display = "block";
         heroMediaVideo.onerror = mostrarHeroDefault;
@@ -177,61 +256,79 @@ function obtenerPropiedadesFiltradas() {
     });
 }
 
+function crearParrafoCard(texto) {
+    const parrafo = document.createElement("p");
+    parrafo.textContent = String(texto || "");
+
+    return parrafo;
+}
+
+function crearCardPropiedad(propiedad) {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const imagen = document.createElement("img");
+    imagen.src = obtenerImagenPrincipal(propiedad);
+    imagen.alt = String(propiedad.titulo || "Propiedad");
+    imagen.loading = "lazy";
+    imagen.onerror = function () {
+        imagen.onerror = null;
+        imagen.src = imagenFallback;
+    };
+    card.appendChild(imagen);
+
+    const titulo = document.createElement("h3");
+    titulo.textContent = String(propiedad.titulo || "Propiedad");
+    card.appendChild(titulo);
+
+    const favorito = document.createElement("p");
+    favorito.className = "favorito";
+    favorito.dataset.titulo = String(propiedad.titulo || "");
+    favorito.appendChild(crearIconoFavorito(propiedad.titulo));
+    card.appendChild(favorito);
+
+    card.appendChild(crearParrafoCard(propiedad.precio));
+    card.appendChild(crearParrafoCard(propiedad.ubicacion));
+    card.appendChild(crearParrafoCard(propiedad.metros));
+    card.appendChild(crearParrafoCard(propiedad.tipo));
+
+    const acciones = document.createElement("div");
+    acciones.className = "card-acciones";
+
+    const botonVerMas = document.createElement("button");
+    botonVerMas.type = "button";
+    botonVerMas.className = "boton-principal boton-ver-mas";
+    botonVerMas.dataset.id = String(propiedad.id || "");
+    botonVerMas.textContent = "Ver más";
+    acciones.appendChild(botonVerMas);
+
+    const linkZona = document.createElement("a");
+    linkZona.className = "link-zona";
+    linkZona.href = crearUrlMapa(propiedad.ubicacion || "");
+    linkZona.target = "_blank";
+    linkZona.rel = "noopener noreferrer";
+    linkZona.textContent = "Ver ubicación";
+    acciones.appendChild(linkZona);
+
+    card.appendChild(acciones);
+
+    return card;
+}
+
 function mostrarPropiedades(lista) {
-    contenedorPropiedades.innerHTML = "";
+    contenedorPropiedades.replaceChildren();
 
     if (lista.length === 0) {
-        contenedorPropiedades.innerHTML = `
-            <p class="mensaje-vacio">
-                No encontramos propiedades con esa búsqueda.
-            </p>
-        `;
+        const mensaje = document.createElement("p");
+        mensaje.className = "mensaje-vacio";
+        mensaje.textContent = "No encontramos propiedades con esa búsqueda.";
+        contenedorPropiedades.appendChild(mensaje);
 
         return;
     }
 
     lista.forEach(function (propiedad) {
-        contenedorPropiedades.innerHTML += `
-            <div class="card">
-                <img src="${propiedad.imagenes[0]}" alt="${propiedad.titulo}">
-
-                <h3>${propiedad.titulo}</h3>
-
-                <p class="favorito" data-titulo="${propiedad.titulo}">
-                    ${obtenerIconoFavorito(propiedad.titulo)}
-                </p>
-
-                <p>${propiedad.precio}</p>
-                <p>${propiedad.ubicacion}</p>
-                <p>${propiedad.metros}</p>
-                <p>${propiedad.tipo}</p>
-
-                <div class="card-acciones">
-                    <button 
-                        class="boton-principal boton-ver-mas"
-                        data-titulo="${propiedad.titulo}"
-                        data-precio="${propiedad.precio}"
-                        data-ubicacion="${propiedad.ubicacion}"
-                        data-metros="${propiedad.metros}"
-                        data-tipo="${propiedad.tipo}"
-                        data-whatsapp="${propiedad.whatsapp}"
-                        data-imagenes='${JSON.stringify(propiedad.imagenes)}'
-                        data-video="${propiedad.video || ""}"
-                    >
-                        Ver más
-                    </button>
-
-                    <a
-                        class="link-zona"
-                        href="${crearUrlMapa(propiedad.ubicacion)}"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                    >
-                        Ver ubicación
-                    </a>
-                </div>
-            </div>
-        `;
+        contenedorPropiedades.appendChild(crearCardPropiedad(propiedad));
     });
 }
 
@@ -289,11 +386,10 @@ async function inicializarLanding() {
     } catch (error) {
         console.error(error);
 
-        contenedorPropiedades.innerHTML = `
-            <p class="mensaje-vacio">
-                No pudimos cargar las propiedades. Intentá nuevamente más tarde.
-            </p>
-        `;
+        const mensaje = document.createElement("p");
+        mensaje.className = "mensaje-vacio";
+        mensaje.textContent = "No pudimos cargar las propiedades. Intentá nuevamente más tarde.";
+        contenedorPropiedades.replaceChildren(mensaje);
     } finally {
         loader.style.display = "none";
     }
@@ -302,20 +398,25 @@ async function inicializarLanding() {
 buscador.addEventListener("input", refrescarPropiedades);
 
 document.addEventListener("click", function (event) {
-    if (event.target.classList.contains("boton-ver-mas")) {
-        const titulo = event.target.dataset.titulo;
-        const precio = event.target.dataset.precio;
-        const ubicacion = event.target.dataset.ubicacion;
-        const metros = event.target.dataset.metros;
-        const tipo = event.target.dataset.tipo;
-        const whatsapp = event.target.dataset.whatsapp;
-        const imagenes = JSON.parse(event.target.dataset.imagenes);
-        const video = event.target.dataset.video;
+    const botonVerMas = event.target.closest(".boton-ver-mas");
 
-        mediosActuales = obtenerMediosPropiedad({
-            imagenes: imagenes,
-            video: video
+    if (botonVerMas) {
+        const propiedad = propiedadesDisponibles.find(function (item) {
+            return String(item.id) === String(botonVerMas.dataset.id);
         });
+
+        if (!propiedad) {
+            return;
+        }
+
+        const titulo = String(propiedad.titulo || "Propiedad");
+        const precio = String(propiedad.precio || "");
+        const ubicacion = String(propiedad.ubicacion || "");
+        const metros = String(propiedad.metros || "");
+        const tipo = String(propiedad.tipo || "");
+        const whatsapp = obtenerUrlWhatsappSegura(propiedad.whatsapp);
+
+        mediosActuales = obtenerMediosPropiedad(propiedad);
 
         medioActual = 0;
 
@@ -324,10 +425,18 @@ document.addEventListener("click", function (event) {
         modalUbicacion.textContent = "Ubicación: " + ubicacion;
         modalMetros.textContent = "Metros: " + metros;
         modalTipo.textContent = "Operación: " + tipo;
-        modalWhatsapp.href = whatsapp;
+        if (whatsapp) {
+            modalWhatsapp.href = whatsapp;
+            modalWhatsapp.target = "_blank";
+            modalWhatsapp.rel = "noopener noreferrer";
+            modalWhatsapp.removeAttribute("aria-disabled");
+        } else {
+            modalWhatsapp.removeAttribute("href");
+            modalWhatsapp.setAttribute("aria-disabled", "true");
+        }
         modalMapa.href = crearUrlMapa(ubicacion);
         modalFavorito.dataset.titulo = titulo;
-        modalFavorito.innerHTML = obtenerIconoFavorito(titulo);
+        modalFavorito.replaceChildren(crearIconoFavorito(titulo));
         modalImagen.alt = titulo;
 
         mostrarMedioActual();
