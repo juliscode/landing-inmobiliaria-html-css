@@ -1,5 +1,17 @@
 (function () {
     const STORAGE_HERO = "heroAdmin";
+    const SUPABASE_TIMEOUT_MS = 7000;
+
+    function withTimeout(promise) {
+        return Promise.race([
+            promise,
+            new Promise(function (_, reject) {
+                setTimeout(function () {
+                    reject(new Error("Supabase tardó demasiado en responder."));
+                }, SUPABASE_TIMEOUT_MS);
+            })
+        ]);
+    }
 
     function getDefaultHero() {
         return {
@@ -49,11 +61,20 @@
             return getLocalHero();
         }
 
-        const result = await supabase
-            .from("hero_content")
-            .select("*")
-            .eq("id", "main")
-            .maybeSingle();
+        let result;
+
+        try {
+            result = await withTimeout(
+                supabase
+                    .from("hero_content")
+                    .select("*")
+                    .eq("id", "main")
+                    .maybeSingle()
+            );
+        } catch (error) {
+            console.warn("Supabase hero fallback:", error.message);
+            return getLocalHero();
+        }
 
         if (result.error || !result.data) {
             if (result.error) {
@@ -74,14 +95,26 @@
             return hero;
         }
 
-        const result = await supabase
-            .from("hero_content")
-            .upsert(toSupabase(hero))
-            .select()
-            .single();
+        let result;
+
+        try {
+            result = await withTimeout(
+                supabase
+                    .from("hero_content")
+                    .upsert(toSupabase(hero))
+                    .select()
+                    .single()
+            );
+        } catch (error) {
+            console.warn("Supabase hero local fallback:", error.message);
+            saveLocalHero(hero);
+            return hero;
+        }
 
         if (result.error) {
-            throw result.error;
+            console.warn("Supabase hero local fallback:", result.error.message);
+            saveLocalHero(hero);
+            return hero;
         }
 
         return fromSupabase(result.data);

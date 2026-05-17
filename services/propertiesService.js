@@ -1,9 +1,51 @@
 (function () {
     const STORAGE_PROPIEDADES = "propiedadesAdmin";
     const STORAGE_OVERRIDES = "propiedadesBaseOverrides";
+    const SUPABASE_TIMEOUT_MS = 7000;
+
+    function withTimeout(promise) {
+        return Promise.race([
+            promise,
+            new Promise(function (_, reject) {
+                setTimeout(function () {
+                    reject(new Error("Supabase tardó demasiado en responder."));
+                }, SUPABASE_TIMEOUT_MS);
+            })
+        ]);
+    }
 
     function crearIdBase(index) {
         return "base-" + index;
+    }
+
+    function leerJsonLocalStorage(clave, fallback) {
+        try {
+            return JSON.parse(localStorage.getItem(clave)) || fallback;
+        } catch (error) {
+            console.warn("No se pudo leer " + clave + " desde localStorage:", error.message);
+            return fallback;
+        }
+    }
+
+    function normalizeImages(images) {
+        if (Array.isArray(images)) {
+            return images.filter(function (image) {
+                return typeof image === "string" && image.trim() !== "";
+            });
+        }
+
+        if (typeof images === "string" && images.trim() !== "") {
+            return images
+                .split("\n")
+                .map(function (image) {
+                    return image.trim();
+                })
+                .filter(function (image) {
+                    return image !== "";
+                });
+        }
+
+        return [];
     }
 
     function normalizeLocalProperty(propiedad, index) {
@@ -15,7 +57,7 @@
             metros: propiedad.metros || "",
             tipo: propiedad.tipo || "Venta",
             whatsapp: propiedad.whatsapp || "",
-            imagenes: propiedad.imagenes || [],
+            imagenes: normalizeImages(propiedad.imagenes),
             video: propiedad.video || "",
             destacada: propiedad.destacada !== false,
             created_at: propiedad.created_at || null,
@@ -27,14 +69,14 @@
     function fromSupabase(row) {
         return {
             id: row.id,
-            titulo: row.title,
-            precio: row.price,
-            ubicacion: row.location,
-            metros: row.square_meters,
-            tipo: row.operation_type,
-            whatsapp: row.whatsapp_url,
-            imagenes: row.images || [],
-            video: row.video_url || "",
+            titulo: row.title || row.titulo || "",
+            precio: row.price || row.precio || "",
+            ubicacion: row.location || row.ubicacion || "",
+            metros: row.square_meters || row.metros || "",
+            tipo: row.operation_type || row.tipo || "Venta",
+            whatsapp: row.whatsapp_url || row.whatsapp || "",
+            imagenes: normalizeImages(row.images || row.imagenes),
+            video: row.video_url || row.video || "",
             destacada: row.is_featured,
             created_at: row.created_at,
             updated_at: row.updated_at,
@@ -57,7 +99,7 @@
     }
 
     function obtenerOverridesBase() {
-        return JSON.parse(localStorage.getItem(STORAGE_OVERRIDES)) || {};
+        return leerJsonLocalStorage(STORAGE_OVERRIDES, {});
     }
 
     function guardarOverridesBase(overrides) {
@@ -65,7 +107,11 @@
     }
 
     function obtenerPropiedadesAdminLocal() {
-        return JSON.parse(localStorage.getItem(STORAGE_PROPIEDADES)) || [];
+        return leerJsonLocalStorage(STORAGE_PROPIEDADES, []).map(function (propiedad, index) {
+            return normalizeLocalProperty(Object.assign({}, propiedad, {
+                origen: propiedad.origen || "admin"
+            }), index);
+        });
     }
 
     function guardarPropiedadesAdminLocal(propiedadesAdmin) {
@@ -101,20 +147,43 @@
         const supabase = window.supabaseClientService.getSupabaseClient();
 
         if (!supabase) {
+            console.info("Supabase no configurado. Usando propiedades locales.");
             return listLocal();
         }
 
-        const result = await supabase
-            .from("properties")
-            .select("*")
-            .order("created_at", { ascending: false });
+        let result;
+
+        try {
+            result = await withTimeout(
+                supabase
+                    .from("properties")
+                    .select("*")
+                    .order("created_at", { ascending: false })
+            );
+        } catch (error) {
+            console.warn("Supabase properties fallback: la consulta falló. Usando propiedades locales.", error.message);
+            return listLocal();
+        }
 
         if (result.error) {
-            console.warn("Supabase properties fallback:", result.error.message);
+            console.warn("Supabase properties fallback: Supabase devolvió error. Usando propiedades locales.", result.error.message);
             return listLocal();
         }
 
-        return result.data.map(fromSupabase);
+        if (!result.data || result.data.length === 0) {
+            console.warn("Supabase properties fallback: la tabla properties está vacía. Usando propiedades locales.");
+            return listLocal();
+        }
+
+        const propiedadesSupabase = result.data.map(fromSupabase);
+
+        if (propiedadesSupabase.length === 0) {
+            console.warn("Supabase properties fallback: no se pudieron normalizar propiedades. Usando propiedades locales.");
+            return listLocal();
+        }
+
+        console.info("Propiedades cargadas desde Supabase:", propiedadesSupabase.length);
+        return propiedadesSupabase;
     }
 
     async function saveProperty(propiedad, context) {

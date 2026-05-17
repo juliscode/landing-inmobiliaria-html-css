@@ -3,10 +3,12 @@ const heroSubtitulo = document.querySelector("#hero-subtitulo");
 const botonHero = document.querySelector(".boton-hero");
 const heroMediaImagen = document.querySelector("#hero-media-imagen");
 const heroMediaVideo = document.querySelector("#hero-media-video");
+
 const contenedorPropiedades = document.querySelector("#contenedor-propiedades");
 const buscador = document.querySelector("#buscador");
 const botonesFiltro = document.querySelectorAll(".filtro-btn");
 const loader = document.querySelector("#loader");
+
 const modal = document.querySelector("#modal");
 const modalTitulo = document.querySelector("#modal-titulo");
 const modalPrecio = document.querySelector("#modal-precio");
@@ -21,6 +23,7 @@ const modalVideo = document.querySelector("#modal-video");
 const cerrarModal = document.querySelector("#cerrar-modal");
 const botonAnterior = document.querySelector("#anterior-img");
 const botonSiguiente = document.querySelector("#siguiente-img");
+
 const menuToggle = document.querySelector(".menu-toggle");
 const navLinks = document.querySelector(".nav-links");
 
@@ -104,34 +107,71 @@ function obtenerMediosPropiedad(propiedad) {
     return medios;
 }
 
-function aplicarHero(hero) {
-    const heroFinal = hero || window.heroService.getDefaultHero();
+function mostrarHeroDefault() {
+    const heroDefault = window.heroService.getDefaultHero();
 
-    heroTitulo.textContent = heroFinal.titulo;
-    heroSubtitulo.textContent = heroFinal.subtitulo;
-    botonHero.textContent = heroFinal.boton;
+    heroMediaVideo.pause();
+    heroMediaVideo.onerror = null;
+    heroMediaVideo.removeAttribute("src");
+    heroMediaVideo.style.display = "none";
+
+    heroMediaImagen.onerror = null;
+    heroMediaImagen.style.display = "block";
+    heroMediaImagen.src = heroDefault.fondo;
+}
+
+function aplicarHero(hero) {
+    const heroDefault = window.heroService.getDefaultHero();
+    const heroFinal = hero || heroDefault;
+    const fondoHero = heroFinal.fondo || heroDefault.fondo;
+
+    heroTitulo.textContent = heroFinal.titulo || heroDefault.titulo;
+    heroSubtitulo.textContent = heroFinal.subtitulo || heroDefault.subtitulo;
+    botonHero.textContent = heroFinal.boton || heroDefault.boton;
 
     if (heroFinal.tipoFondo === "video") {
         heroMediaImagen.style.display = "none";
         heroMediaVideo.style.display = "block";
-        heroMediaVideo.src = heroFinal.fondo;
+        heroMediaVideo.onerror = mostrarHeroDefault;
+        heroMediaVideo.src = fondoHero;
         heroMediaVideo.play().catch(function () {});
         return;
     }
 
     heroMediaVideo.pause();
+    heroMediaVideo.onerror = null;
     heroMediaVideo.removeAttribute("src");
     heroMediaVideo.style.display = "none";
+
     heroMediaImagen.style.display = "block";
-    heroMediaImagen.src = heroFinal.fondo;
+    heroMediaImagen.onerror = function () {
+        mostrarHeroDefault();
+    };
+    heroMediaImagen.src = fondoHero;
+}
+
+function normalizarTexto(valor) {
+    return String(valor || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
 }
 
 function obtenerPropiedadesFiltradas() {
-    const texto = buscador.value.toLowerCase();
+    const texto = normalizarTexto(buscador.value).trim();
 
     return propiedadesDisponibles.filter(function (propiedad) {
-        const coincideTexto = propiedad.titulo.toLowerCase().includes(texto);
-        const coincideFiltro = filtroActual === "todas" || propiedad.tipo === filtroActual;
+        const camposBusqueda = [
+            propiedad.titulo,
+            propiedad.ubicacion,
+            propiedad.tipo,
+            propiedad.precio,
+            propiedad.metros
+        ];
+        const textoPropiedad = normalizarTexto(camposBusqueda.join(" "));
+        const coincideTexto = texto === "" || textoPropiedad.includes(texto);
+        const coincideFiltro = normalizarTexto(filtroActual) === "todas" ||
+            normalizarTexto(propiedad.tipo) === normalizarTexto(filtroActual);
 
         return coincideTexto && coincideFiltro;
     });
@@ -154,14 +194,18 @@ function mostrarPropiedades(lista) {
         contenedorPropiedades.innerHTML += `
             <div class="card">
                 <img src="${propiedad.imagenes[0]}" alt="${propiedad.titulo}">
+
                 <h3>${propiedad.titulo}</h3>
+
                 <p class="favorito" data-titulo="${propiedad.titulo}">
                     ${obtenerIconoFavorito(propiedad.titulo)}
                 </p>
+
                 <p>${propiedad.precio}</p>
                 <p>${propiedad.ubicacion}</p>
                 <p>${propiedad.metros}</p>
                 <p>${propiedad.tipo}</p>
+
                 <div class="card-acciones">
                     <button 
                         class="boton-principal boton-ver-mas"
@@ -183,7 +227,7 @@ function mostrarPropiedades(lista) {
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        Ver zona
+                        Ver ubicación
                     </a>
                 </div>
             </div>
@@ -205,6 +249,7 @@ function cerrarModalPropiedad() {
     modal.classList.remove("abierto");
     modal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+
     modalVideo.pause();
 }
 
@@ -226,6 +271,7 @@ function mostrarMedioActual() {
     modalVideo.pause();
     modalVideo.removeAttribute("src");
     modalVideo.style.display = "none";
+
     modalImagen.style.display = "block";
     modalImagen.src = medio.src;
 }
@@ -235,12 +281,14 @@ async function inicializarLanding() {
 
     try {
         const hero = await window.heroService.getHero();
+
         propiedadesDisponibles = await window.propertiesService.listProperties();
 
         aplicarHero(hero);
         refrescarPropiedades();
     } catch (error) {
         console.error(error);
+
         contenedorPropiedades.innerHTML = `
             <p class="mensaje-vacio">
                 No pudimos cargar las propiedades. Intentá nuevamente más tarde.
@@ -270,6 +318,7 @@ document.addEventListener("click", function (event) {
         });
 
         medioActual = 0;
+
         modalTitulo.textContent = titulo;
         modalPrecio.textContent = precio;
         modalUbicacion.textContent = "Ubicación: " + ubicacion;
@@ -280,6 +329,7 @@ document.addEventListener("click", function (event) {
         modalFavorito.dataset.titulo = titulo;
         modalFavorito.innerHTML = obtenerIconoFavorito(titulo);
         modalImagen.alt = titulo;
+
         mostrarMedioActual();
         abrirModal();
     }
@@ -317,6 +367,7 @@ menuToggle.addEventListener("click", function () {
 botonesFiltro.forEach(function (boton) {
     boton.addEventListener("click", function () {
         filtroActual = boton.dataset.filtro;
+
         marcarFiltroActivo(boton);
         refrescarPropiedades();
     });

@@ -226,7 +226,8 @@ body {
 }
 
 .admin-preview-imagenes span,
-.admin-preview-video span {
+.admin-preview-video span,
+.admin-preview-hero span {
     color: #666;
     font-size: 14px;
 }
@@ -253,6 +254,21 @@ body {
     display: block;
     border-radius: 12px;
     background-color: var(--color-negro);
+}
+
+.admin-preview-hero {
+    min-height: 180px;
+    overflow: hidden;
+    border-radius: 12px;
+    background-color: var(--color-negro);
+}
+
+.admin-preview-hero img,
+.admin-preview-hero video {
+    width: 100%;
+    height: 220px;
+    display: block;
+    object-fit: cover;
 }
 
 .admin-lista-header {

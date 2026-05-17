@@ -12,6 +12,7 @@ const botonCancelarEdicion = document.querySelector("#cancelar-edicion");
 
 const previewImagenes = document.querySelector("#preview-imagenes");
 const previewVideo = document.querySelector("#preview-video");
+const previewHero = document.querySelector("#preview-hero");
 
 const logoutBtn = document.querySelector("#logout-btn");
 const migrarBaseBtn = document.querySelector("#migrar-base-btn");
@@ -40,6 +41,56 @@ const campos = {
 
 let propiedadEditando = null;
 let propiedadesActuales = [];
+
+function inferirTipoFondoDesdeArchivo(archivo) {
+    if (!archivo) {
+        return "";
+    }
+
+    const nombreArchivo = archivo.name.toLowerCase();
+
+    if (archivo.type.startsWith("video/")) {
+        return "video";
+    }
+
+    if (
+        nombreArchivo.endsWith(".mp4") ||
+        nombreArchivo.endsWith(".webm") ||
+        nombreArchivo.endsWith(".ogg")
+    ) {
+        return "video";
+    }
+
+    if (archivo.type === "image/gif" || nombreArchivo.endsWith(".gif")) {
+        return "gif";
+    }
+
+    return "imagen";
+}
+
+function inferirTipoFondoDesdeUrl(url) {
+    const urlLimpia = url.split("?")[0].split("#")[0].toLowerCase();
+
+    if (urlLimpia.endsWith(".mp4") || urlLimpia.endsWith(".webm") || urlLimpia.endsWith(".ogg")) {
+        return "video";
+    }
+
+    if (urlLimpia.endsWith(".gif")) {
+        return "gif";
+    }
+
+    if (
+        urlLimpia.endsWith(".jpg") ||
+        urlLimpia.endsWith(".jpeg") ||
+        urlLimpia.endsWith(".png") ||
+        urlLimpia.endsWith(".webp") ||
+        urlLimpia.endsWith(".avif")
+    ) {
+        return "imagen";
+    }
+
+    return "";
+}
 
 function mostrarMensaje(elemento, texto, tipo) {
     if (!elemento) {
@@ -153,6 +204,28 @@ async function obtenerFondoHeroFinal() {
     return subirArchivoOFallback(archivo, bucket, "hero");
 }
 
+function obtenerErrorHero() {
+    const archivo = camposHero.archivoFondo.files[0];
+    const fondoUrl = camposHero.fondo.value.trim();
+
+    if (!archivo && fondoUrl === "") {
+        return "Subí un archivo de fondo o agregá una URL para el hero.";
+    }
+
+    return "";
+}
+
+function obtenerTipoFondoFinal(fondo) {
+    const archivo = camposHero.archivoFondo.files[0];
+    const tipoArchivo = inferirTipoFondoDesdeArchivo(archivo);
+
+    if (tipoArchivo) {
+        return tipoArchivo;
+    }
+
+    return inferirTipoFondoDesdeUrl(fondo) || camposHero.tipoFondo.value;
+}
+
 function crearPropiedadDesdeFormulario(imagenes, video) {
     return {
         id: propiedadEditando ? propiedadEditando.id : null,
@@ -249,6 +322,30 @@ function renderizarPreviewVideo() {
 
     previewVideo.innerHTML = `
         <video src="${fuente}" controls></video>
+    `;
+}
+
+function renderizarPreviewHero() {
+    const archivo = camposHero.archivoFondo.files[0];
+    const fondoUrl = camposHero.fondo.value.trim();
+
+    if (!archivo && !fondoUrl) {
+        previewHero.innerHTML = "<span>No hay fondo cargado.</span>";
+        return;
+    }
+
+    const fuente = archivo ? URL.createObjectURL(archivo) : fondoUrl;
+    const tipoFondo = obtenerTipoFondoFinal(fuente);
+
+    if (tipoFondo === "video") {
+        previewHero.innerHTML = `
+            <video src="${fuente}" muted controls></video>
+        `;
+        return;
+    }
+
+    previewHero.innerHTML = `
+        <img src="${fuente}" alt="Preview del hero">
     `;
 }
 
@@ -366,27 +463,38 @@ async function cargarHeroEnFormulario() {
     camposHero.tipoFondo.value = hero.tipoFondo;
     camposHero.fondo.value = hero.fondo;
     camposHero.archivoFondo.value = "";
+    renderizarPreviewHero();
 }
 
 formHero.addEventListener("submit", async function (event) {
     event.preventDefault();
 
+    const errorHero = obtenerErrorHero();
+
+    if (errorHero !== "") {
+        mostrarMensaje(mensajeHero, errorHero, "error");
+        return;
+    }
+
     try {
         const fondo = await obtenerFondoHeroFinal();
+        const tipoFondo = obtenerTipoFondoFinal(fondo);
 
         const hero = {
             id: "main",
             titulo: camposHero.titulo.value.trim(),
             subtitulo: camposHero.subtitulo.value.trim(),
             boton: camposHero.boton.value.trim(),
-            tipoFondo: camposHero.tipoFondo.value,
+            tipoFondo: tipoFondo,
             fondo: fondo
         };
 
         await window.heroService.saveHero(hero);
 
         camposHero.fondo.value = fondo;
+        camposHero.tipoFondo.value = tipoFondo;
         camposHero.archivoFondo.value = "";
+        renderizarPreviewHero();
 
         mostrarMensaje(mensajeHero, "Hero guardado correctamente.", "exito");
     } catch (error) {
@@ -404,6 +512,7 @@ botonRestaurarHero.addEventListener("click", async function () {
         camposHero.tipoFondo.value = hero.tipoFondo;
         camposHero.fondo.value = hero.fondo;
         camposHero.archivoFondo.value = "";
+        renderizarPreviewHero();
 
         mostrarMensaje(mensajeHero, "Hero restaurado al contenido original.", "exito");
     } catch (error) {
@@ -425,6 +534,33 @@ campos.videoArchivo.addEventListener("change", function () {
 
 campos.video.addEventListener("input", function () {
     renderizarPreviewVideo();
+});
+
+camposHero.archivoFondo.addEventListener("change", function () {
+    const archivo = camposHero.archivoFondo.files[0];
+    const tipoArchivo = inferirTipoFondoDesdeArchivo(archivo);
+
+    if (tipoArchivo) {
+        camposHero.tipoFondo.value = tipoArchivo;
+    }
+
+    renderizarPreviewHero();
+});
+
+camposHero.fondo.addEventListener("input", function () {
+    if (!camposHero.archivoFondo.files[0]) {
+        const tipoUrl = inferirTipoFondoDesdeUrl(camposHero.fondo.value.trim());
+
+        if (tipoUrl) {
+            camposHero.tipoFondo.value = tipoUrl;
+        }
+    }
+
+    renderizarPreviewHero();
+});
+
+camposHero.tipoFondo.addEventListener("change", function () {
+    renderizarPreviewHero();
 });
 
 formPropiedad.addEventListener("submit", async function (event) {
@@ -521,6 +657,7 @@ async function iniciarAdmin() {
 
     renderizarPreviewImagenes();
     renderizarPreviewVideo();
+    renderizarPreviewHero();
 
     await cargarHeroEnFormulario();
     await cargarPropiedades();

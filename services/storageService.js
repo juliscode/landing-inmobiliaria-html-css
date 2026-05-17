@@ -1,4 +1,17 @@
 (function () {
+    const STORAGE_TIMEOUT_MS = 10000;
+
+    function withTimeout(promise) {
+        return Promise.race([
+            promise,
+            new Promise(function (_, reject) {
+                setTimeout(function () {
+                    reject(new Error("Storage tardó demasiado en responder."));
+                }, STORAGE_TIMEOUT_MS);
+            })
+        ]);
+    }
+
     async function fileToBase64(file) {
         return new Promise(function (resolve, reject) {
             const reader = new FileReader();
@@ -30,13 +43,23 @@
         }
 
         const path = createStoragePath(file, folder);
-        const result = await supabase.storage.from(bucket).upload(path, file, {
-            cacheControl: "3600",
-            upsert: false
-        });
+        let result;
+
+        try {
+            result = await withTimeout(
+                supabase.storage.from(bucket).upload(path, file, {
+                    cacheControl: "3600",
+                    upsert: false
+                })
+            );
+        } catch (error) {
+            console.warn("Storage fallback base64:", error.message);
+            return fileToBase64(file);
+        }
 
         if (result.error) {
-            throw result.error;
+            console.warn("Storage fallback base64:", result.error.message);
+            return fileToBase64(file);
         }
 
         const publicUrlResult = supabase.storage.from(bucket).getPublicUrl(path);

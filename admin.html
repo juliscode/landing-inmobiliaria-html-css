@@ -19,29 +19,17 @@
             <p>Panel admin de propiedades</p>
         </div>
 
-HEAD
         <div class="admin-header-acciones">
             <a href="index.html" class="admin-link">
                 <i class="fa-solid fa-arrow-left"></i>
                 Volver a la landing
             </a>
 
-            <button type="button" id="cerrar-sesion-admin" class="admin-link admin-logout">
+            <button type="button" id="logout-btn" class="admin-link admin-logout">
                 <i class="fa-solid fa-right-from-bracket"></i>
                 Cerrar sesión
             </button>
         </div>
-
-        <a href="index.html" class="admin-link">
-            <i class="fa-solid fa-arrow-left"></i>
-            Volver a la landing
-        </a>
-
-        <button type="button" id="logout-btn" class="admin-link">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            Salir
-        </button>
-f18dc42 (Integro Supabase auth storage y servicios)
     </header>
 
     <main class="admin-layout">
@@ -75,13 +63,20 @@ f18dc42 (Integro Supabase auth storage y servicios)
 
                 <label class="campo-completo">
                     URL de imagen/gif/video de fondo
-                    <input type="text" id="hero-fondo" placeholder="assets/imagenes/hero-premium.gif" required>
+                    <input type="text" id="hero-fondo" placeholder="assets/imagenes/hero-premium.gif">
                 </label>
 
                 <label class="campo-completo">
                     Subir fondo desde la PC
                     <input type="file" id="hero-fondo-archivo" accept="image/*,video/*">
                 </label>
+
+                <div class="campo-completo admin-preview-bloque">
+                    <p>Preview del hero</p>
+                    <div id="preview-hero" class="admin-preview-hero">
+                        <span>No hay fondo cargado.</span>
+                    </div>
+                </div>
 
                 <div class="admin-acciones-form">
                     <button type="submit" class="admin-boton">
@@ -158,7 +153,6 @@ f18dc42 (Integro Supabase auth storage y servicios)
                     <input type="text" id="video" placeholder="https://...">
                 </label>
 
-HEAD
                 <div class="campo-completo admin-preview-bloque">
                     <p>Preview de video</p>
                     <div id="preview-video" class="admin-preview-video">
@@ -170,7 +164,6 @@ HEAD
                     Subir video desde la PC
                     <input type="file" id="video-archivo" accept="video/*">
                 </label>
-f18dc42 (Integro Supabase auth storage y servicios)
 
                 <div class="admin-acciones-form">
                     <button type="submit" class="admin-boton" id="boton-guardar-propiedad">
