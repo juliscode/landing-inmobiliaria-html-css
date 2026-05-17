@@ -31,7 +31,7 @@ let propiedadesDisponibles = [];
 let filtroActual = "todas";
 let medioActual = 0;
 let mediosActuales = [];
-let favoritos = JSON.parse(localStorage.getItem("favoritos")) || [];
+let favoritos = obtenerFavoritosGuardados();
 const imagenFallback = "assets/imagenes/casa.jpg";
 
 botonHero.addEventListener("click", function () {
@@ -113,9 +113,33 @@ function marcarFiltroActivo(botonActivo) {
     botonActivo.classList.add("activo");
 }
 
-function crearIconoFavorito(titulo) {
+function obtenerFavoritosGuardados() {
+    try {
+        const favoritosGuardados = JSON.parse(localStorage.getItem("favoritos")) || [];
+
+        if (!Array.isArray(favoritosGuardados)) {
+            return [];
+        }
+
+        return favoritosGuardados.map(function (favorito) {
+            return String(favorito);
+        });
+    } catch (error) {
+        return [];
+    }
+}
+
+function obtenerIdPropiedad(propiedad) {
+    return String(propiedad.id || propiedad.titulo || "");
+}
+
+function esFavorito(id, titulo) {
+    return favoritos.includes(String(id)) || favoritos.includes(String(titulo || ""));
+}
+
+function crearIconoFavorito(id, titulo) {
     const icono = document.createElement("i");
-    icono.className = favoritos.includes(titulo)
+    icono.className = esFavorito(id, titulo)
         ? "fa-solid fa-heart"
         : "fa-regular fa-heart";
 
@@ -126,27 +150,74 @@ function guardarFavoritos() {
     localStorage.setItem("favoritos", JSON.stringify(favoritos));
 }
 
-function alternarFavorito(titulo) {
-    if (favoritos.includes(titulo)) {
+function alternarFavorito(id, titulo) {
+    const idFavorito = String(id || "");
+    const tituloFavorito = String(titulo || "");
+
+    if (!idFavorito) {
+        return;
+    }
+
+    if (esFavorito(idFavorito, tituloFavorito)) {
         favoritos = favoritos.filter(function (favorito) {
-            return favorito !== titulo;
+            return favorito !== idFavorito && favorito !== tituloFavorito;
         });
     } else {
-        favoritos.push(titulo);
+        favoritos = favoritos.filter(function (favorito) {
+            return favorito !== tituloFavorito;
+        });
+        favoritos.push(idFavorito);
     }
 
     guardarFavoritos();
 }
 
-function actualizarIconosFavorito(titulo) {
+function actualizarIconosFavorito(id, titulo) {
+    const idFavorito = String(id || "");
+
     document.querySelectorAll(".favorito").forEach(function (favoritoElemento) {
-        if (favoritoElemento.dataset.titulo === titulo) {
-            favoritoElemento.replaceChildren(crearIconoFavorito(titulo));
+        if (favoritoElemento.dataset.id === idFavorito) {
+            favoritoElemento.replaceChildren(crearIconoFavorito(id, titulo));
         }
     });
 
-    if (modalFavorito.dataset.titulo === titulo) {
-        modalFavorito.replaceChildren(crearIconoFavorito(titulo));
+    if (modalFavorito.dataset.id === idFavorito) {
+        modalFavorito.replaceChildren(crearIconoFavorito(id, titulo));
+    }
+}
+
+function migrarFavoritosPorTitulo() {
+    const favoritosMigrados = [];
+
+    favoritos.forEach(function (favorito) {
+        const existeId = propiedadesDisponibles.some(function (propiedad) {
+            return obtenerIdPropiedad(propiedad) === favorito;
+        });
+
+        if (existeId) {
+            favoritosMigrados.push(favorito);
+            return;
+        }
+
+        const propiedadesPorTitulo = propiedadesDisponibles.filter(function (propiedad) {
+            return String(propiedad.titulo || "") === favorito;
+        });
+
+        if (propiedadesPorTitulo.length === 0) {
+            favoritosMigrados.push(favorito);
+            return;
+        }
+
+        propiedadesPorTitulo.forEach(function (propiedad) {
+            favoritosMigrados.push(obtenerIdPropiedad(propiedad));
+        });
+    });
+
+    const favoritosUnicos = Array.from(new Set(favoritosMigrados));
+
+    if (favoritosUnicos.join("|") !== favoritos.join("|")) {
+        favoritos = favoritosUnicos;
+        guardarFavoritos();
     }
 }
 
@@ -264,12 +335,14 @@ function crearParrafoCard(texto) {
 }
 
 function crearCardPropiedad(propiedad) {
+    const idPropiedad = obtenerIdPropiedad(propiedad);
+    const tituloPropiedad = String(propiedad.titulo || "Propiedad");
     const card = document.createElement("div");
     card.className = "card";
 
     const imagen = document.createElement("img");
     imagen.src = obtenerImagenPrincipal(propiedad);
-    imagen.alt = String(propiedad.titulo || "Propiedad");
+    imagen.alt = tituloPropiedad;
     imagen.loading = "lazy";
     imagen.onerror = function () {
         imagen.onerror = null;
@@ -278,13 +351,14 @@ function crearCardPropiedad(propiedad) {
     card.appendChild(imagen);
 
     const titulo = document.createElement("h3");
-    titulo.textContent = String(propiedad.titulo || "Propiedad");
+    titulo.textContent = tituloPropiedad;
     card.appendChild(titulo);
 
     const favorito = document.createElement("p");
     favorito.className = "favorito";
-    favorito.dataset.titulo = String(propiedad.titulo || "");
-    favorito.appendChild(crearIconoFavorito(propiedad.titulo));
+    favorito.dataset.id = idPropiedad;
+    favorito.dataset.titulo = tituloPropiedad;
+    favorito.appendChild(crearIconoFavorito(idPropiedad, tituloPropiedad));
     card.appendChild(favorito);
 
     card.appendChild(crearParrafoCard(propiedad.precio));
@@ -298,7 +372,7 @@ function crearCardPropiedad(propiedad) {
     const botonVerMas = document.createElement("button");
     botonVerMas.type = "button";
     botonVerMas.className = "boton-principal boton-ver-mas";
-    botonVerMas.dataset.id = String(propiedad.id || "");
+    botonVerMas.dataset.id = idPropiedad;
     botonVerMas.textContent = "Ver más";
     acciones.appendChild(botonVerMas);
 
@@ -380,6 +454,7 @@ async function inicializarLanding() {
         const hero = await window.heroService.getHero();
 
         propiedadesDisponibles = await window.propertiesService.listProperties();
+        migrarFavoritosPorTitulo();
 
         aplicarHero(hero);
         refrescarPropiedades();
@@ -402,7 +477,7 @@ document.addEventListener("click", function (event) {
 
     if (botonVerMas) {
         const propiedad = propiedadesDisponibles.find(function (item) {
-            return String(item.id) === String(botonVerMas.dataset.id);
+            return obtenerIdPropiedad(item) === String(botonVerMas.dataset.id);
         });
 
         if (!propiedad) {
@@ -410,6 +485,7 @@ document.addEventListener("click", function (event) {
         }
 
         const titulo = String(propiedad.titulo || "Propiedad");
+        const idPropiedad = obtenerIdPropiedad(propiedad);
         const precio = String(propiedad.precio || "");
         const ubicacion = String(propiedad.ubicacion || "");
         const metros = String(propiedad.metros || "");
@@ -435,8 +511,9 @@ document.addEventListener("click", function (event) {
             modalWhatsapp.setAttribute("aria-disabled", "true");
         }
         modalMapa.href = crearUrlMapa(ubicacion);
+        modalFavorito.dataset.id = idPropiedad;
         modalFavorito.dataset.titulo = titulo;
-        modalFavorito.replaceChildren(crearIconoFavorito(titulo));
+        modalFavorito.replaceChildren(crearIconoFavorito(idPropiedad, titulo));
         modalImagen.alt = titulo;
 
         mostrarMedioActual();
@@ -447,14 +524,15 @@ document.addEventListener("click", function (event) {
 cerrarModal.addEventListener("click", cerrarModalPropiedad);
 
 modalFavorito.addEventListener("click", function () {
+    const id = modalFavorito.dataset.id;
     const titulo = modalFavorito.dataset.titulo;
 
-    if (!titulo) {
+    if (!id) {
         return;
     }
 
-    alternarFavorito(titulo);
-    actualizarIconosFavorito(titulo);
+    alternarFavorito(id, titulo);
+    actualizarIconosFavorito(id, titulo);
 });
 
 modal.addEventListener("click", function (event) {
@@ -514,10 +592,11 @@ document.addEventListener("click", function (event) {
     const favoritoElemento = event.target.closest(".favorito");
 
     if (favoritoElemento) {
+        const id = favoritoElemento.dataset.id;
         const titulo = favoritoElemento.dataset.titulo;
 
-        alternarFavorito(titulo);
-        actualizarIconosFavorito(titulo);
+        alternarFavorito(id, titulo);
+        actualizarIconosFavorito(id, titulo);
     }
 });
 
