@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login admin</title>
+    <title>Acceso admin | DIVARVARO</title>
     <link rel="stylesheet" href="admin.css">
     <link
         rel="stylesheet"
@@ -12,34 +12,38 @@
     >
 </head>
 
-<body>
-    <main class="login-layout">
-        <section class="admin-panel login-panel">
-            <h1>DIVARVARO</h1>
-            <p>Ingresá para administrar propiedades.</p>
+<body class="login-body">
+    <main class="login-main">
+        <section class="login-card">
+            <a href="index.html" class="login-back">
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver a la landing
+            </a>
+
+            <div class="login-brand">
+                <p>Panel privado</p>
+                <h1>DIVARVARO</h1>
+                <span>Ingresá para administrar propiedades, hero e imágenes del sitio.</span>
+            </div>
 
             <form id="login-form" class="admin-form login-form">
-                <label class="campo-completo">
+                <label>
                     Email
-                    <input type="email" id="login-email" placeholder="admin@email.com" required>
+                    <input type="email" id="login-email" placeholder="admin@email.com" autocomplete="email" required>
                 </label>
 
-                <label class="campo-completo">
+                <label>
                     Contraseña
-                    <input type="password" id="login-password" placeholder="••••••••">
+                    <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required>
                 </label>
 
-                <button type="submit" class="admin-boton">
+                <button type="submit" id="login-submit" class="admin-boton login-submit">
                     <i class="fa-solid fa-right-to-bracket"></i>
                     Ingresar
                 </button>
             </form>
 
-            <p id="login-mensaje" class="mensaje-admin"></p>
-
-            <a href="index.html" class="admin-link">
-                Volver a la landing
-            </a>
+            <p id="login-mensaje" class="mensaje-admin login-message"></p>
         </section>
     </main>
 

@@ -1,15 +1,9 @@
 (function () {
-    const DEMO_SESSION_KEY = "adminDemoSession";
-
-    function isDemoAuthenticated() {
-        return localStorage.getItem(DEMO_SESSION_KEY) === "true";
-    }
-
     async function getSession() {
         const supabase = window.supabaseClientService.getSupabaseClient();
 
         if (!supabase) {
-            return isDemoAuthenticated() ? { user: { email: "demo@local" } } : null;
+            return null;
         }
 
         const result = await supabase.auth.getSession();
@@ -21,8 +15,7 @@
         const supabase = window.supabaseClientService.getSupabaseClient();
 
         if (!supabase) {
-            localStorage.setItem(DEMO_SESSION_KEY, "true");
-            return { user: { email: email || "demo@local" } };
+            throw new Error("Supabase no esta configurado.");
         }
 
         const result = await supabase.auth.signInWithPassword({
@@ -40,8 +33,6 @@
     async function signOut() {
         const supabase = window.supabaseClientService.getSupabaseClient();
 
-        localStorage.removeItem(DEMO_SESSION_KEY);
-
         if (supabase) {
             await supabase.auth.signOut();
         }
@@ -51,7 +42,7 @@
         const session = await getSession();
 
         if (!session) {
-            window.location.href = "login.html";
+            window.location.replace("login.html");
             return false;
         }
 

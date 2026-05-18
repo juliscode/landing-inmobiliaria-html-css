@@ -4,53 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login admin</title>
-    <link rel="stylesheet" href="admin.css">
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    >
+    <title>Redirigiendo al login</title>
+    <meta http-equiv="refresh" content="0; url=login.html">
+    <link rel="canonical" href="login.html">
 </head>
 
-<body class="login-admin-body">
-    <main class="login-admin">
-        <section class="login-admin-panel">
-            <a href="index.html" class="login-volver">
-                <i class="fa-solid fa-arrow-left"></i>
-                Volver a la landing
-            </a>
-
-            <div class="login-admin-marca">
-                <p>Panel privado</p>
-                <h1>DIVARVARO</h1>
-            </div>
-
-            <form id="form-login-admin" class="login-admin-form">
-                <label>
-                    Usuario
-                    <input type="text" id="login-usuario" placeholder="admin" autocomplete="username" required>
-                </label>
-
-                <label>
-                    Contraseña
-                    <input type="password" id="login-password" placeholder="admin123" autocomplete="current-password" required>
-                </label>
-
-                <button type="submit" class="admin-boton login-admin-boton">
-                    <i class="fa-solid fa-lock"></i>
-                    Ingresar al panel
-                </button>
-            </form>
-
-            <p id="mensaje-login-admin" class="mensaje-admin login-mensaje"></p>
-
-            <p class="login-admin-aviso">
-                Acceso inicial solo para etapa de aprendizaje. Esta protección usa localStorage y no reemplaza seguridad real con backend.
-            </p>
-        </section>
-    </main>
-
-    <script src="admin.js"></script>
+<body>
+    <p>Redirigiendo al login oficial...</p>
+    <script>
+        window.location.replace("login.html");
+    </script>
 </body>
 
 </html>
