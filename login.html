@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso admin | DIVARVARO</title>
+    <meta
+        name="description"
+        content="Acceso privado al panel de administración de DIVARVARO Inmobiliaria para gestionar propiedades, hero y multimedia."
+    >
+    <title>Acceso administrador | DIVARVARO Inmobiliaria</title>
     <link rel="stylesheet" href="admin.css">
     <link
         rel="stylesheet"
@@ -26,7 +30,7 @@
                 <span>Ingresá para administrar propiedades, hero e imágenes del sitio.</span>
             </div>
 
-            <form id="login-form" class="admin-form login-form">
+            <form id="login-form" class="admin-form login-form" aria-describedby="login-mensaje">
                 <label>
                     Email
                     <input type="email" id="login-email" placeholder="admin@email.com" autocomplete="email" required>
@@ -37,7 +41,7 @@
                     <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" required>
                 </label>
 
-                <button type="submit" id="login-submit" class="admin-boton login-submit">
+                <button type="submit" id="login-submit" class="admin-boton login-submit" aria-label="Ingresar al panel administrador">
                     <i class="fa-solid fa-right-to-bracket"></i>
                     Ingresar
                 </button>

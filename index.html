@@ -3,7 +3,12 @@
 
   <head>
     <meta charset="UTF-8">
-    <title>Mi primera web</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="description"
+        content="DIVARVARO Inmobiliaria ofrece propiedades en venta y alquiler en Tucumán, con búsqueda, filtros y contacto directo por WhatsApp."
+    >
+    <title>DIVARVARO Inmobiliaria | Propiedades en venta y alquiler</title>
     <link rel="stylesheet" href="style.css">
     <link 
           rel="stylesheet" 
@@ -13,7 +18,8 @@
 
     <body>
 
-      <nav class="navbar">
+      <header>
+      <nav class="navbar" aria-label="Navegación principal">
 
     <h2 class="logo">DIVARVARO</h2>
 
@@ -28,12 +34,15 @@
     </ul>
 
        </nav>
+       </header>
 
-     <div class="hero" id="inicio">
+     <main>
 
-    <img class="hero-media" id="hero-media-imagen" src="assets/imagenes/hero-premium.gif" alt="">
+     <section class="hero" id="inicio" aria-labelledby="hero-titulo">
 
-    <video class="hero-media hero-video" id="hero-media-video" muted loop playsinline></video>
+    <img class="hero-media" id="hero-media-imagen" src="assets/imagenes/hero-premium.gif" alt="Casa destacada de DIVARVARO Inmobiliaria">
+
+    <video class="hero-media hero-video" id="hero-media-video" muted loop playsinline aria-label="Video de fondo de propiedad destacada"></video>
 
     <div class="hero-overlay"></div>
 
@@ -47,11 +56,11 @@
         </button>
     </div>
 
-</div>
+</section>
 
-    <section class="propiedades" id="propiedades">
+    <section class="propiedades" id="propiedades" aria-labelledby="propiedades-titulo">
 
-    <h2>Propiedades destacadas</h2>
+    <h2 id="propiedades-titulo">Propiedades destacadas</h2>
 
     <input
     type="text" 
@@ -60,31 +69,33 @@
     aria-label="Buscar propiedad"
 >
 
-<div class="filtros">
+<div class="filtros" aria-label="Filtros de propiedades">
 
-    <button class="filtro-btn" data-filtro="todas">
+    <button type="button" class="filtro-btn" data-filtro="todas" aria-pressed="true">
         Todas
     </button>
 
-    <button class="filtro-btn" data-filtro="Venta">
+    <button type="button" class="filtro-btn" data-filtro="Venta" aria-pressed="false">
         Venta
     </button>
 
-    <button class="filtro-btn" data-filtro="Alquiler">
+    <button type="button" class="filtro-btn" data-filtro="Alquiler" aria-pressed="false">
         Alquiler
     </button>
 
 </div>
 
-    <div class="contenedor-cards" id="contenedor-propiedades">
+    <div class="contenedor-cards" id="contenedor-propiedades" aria-live="polite">
 
     </div>
 
-    <div id="loader">
+    <div id="loader" role="status" aria-live="polite">
     Cargando propiedades...
 </div>
 
      </section>
+
+    </main>
 
     <footer class="footer" id="contacto">
 
@@ -152,7 +163,7 @@
 
             <img id="modal-imagen" src="" alt="">
 
-            <video id="modal-video" controls></video>
+            <video id="modal-video" controls aria-label="Video de la propiedad"></video>
 
             <div class="slider-botones">
 

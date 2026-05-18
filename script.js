@@ -116,9 +116,11 @@ function obtenerImagenPrincipal(propiedad) {
 function marcarFiltroActivo(botonActivo) {
     botonesFiltro.forEach(function (boton) {
         boton.classList.remove("activo");
+        boton.setAttribute("aria-pressed", "false");
     });
 
     botonActivo.classList.add("activo");
+    botonActivo.setAttribute("aria-pressed", "true");
 }
 
 function obtenerFavoritosGuardados() {

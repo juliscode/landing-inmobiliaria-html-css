@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin propiedades</title>
+    <meta
+        name="description"
+        content="Panel privado de DIVARVARO Inmobiliaria para administrar propiedades, hero, imágenes y videos."
+    >
+    <title>Panel administrador | DIVARVARO Inmobiliaria</title>
     <link rel="stylesheet" href="admin.css">
     <link
         rel="stylesheet"
@@ -13,7 +17,7 @@
 </head>
 
 <body>
-    <header class="admin-header">
+    <header class="admin-header" aria-label="Encabezado del panel administrador">
         <div>
             <h1>DIVARVARO</h1>
             <p>Panel admin de propiedades</p>
@@ -36,7 +40,7 @@
         <section class="admin-panel admin-panel-hero">
             <h2>Contenido del hero</h2>
 
-            <form id="form-hero" class="admin-form">
+            <form id="form-hero" class="admin-form" aria-describedby="mensaje-hero">
                 <label>
                     Título
                     <input type="text" id="hero-titulo" placeholder="Encontra tu proximo Hogar" required>
@@ -96,7 +100,7 @@
         <section class="admin-panel">
             <h2 id="titulo-form-propiedad">Cargar propiedad</h2>
 
-            <form id="form-propiedad" class="admin-form">
+            <form id="form-propiedad" class="admin-form" aria-describedby="mensaje-admin">
                 <label>
                     Título
                     <input type="text" id="titulo" placeholder="Casa moderna" required>
@@ -190,7 +194,7 @@
                 Migrar propiedades base a Supabase
             </button>
 
-            <div id="lista-propiedades" class="admin-lista"></div>
+            <div id="lista-propiedades" class="admin-lista" aria-live="polite"></div>
         </section>
     </main>
 
