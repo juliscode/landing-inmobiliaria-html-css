@@ -9,6 +9,11 @@ const mensajeAdmin = document.querySelector("#mensaje-admin");
 const tituloFormPropiedad = document.querySelector("#titulo-form-propiedad");
 const botonGuardarPropiedad = document.querySelector("#boton-guardar-propiedad");
 const botonCancelarEdicion = document.querySelector("#cancelar-edicion");
+const modalConfirmarEliminacion = document.querySelector("#modal-confirmar-eliminacion");
+const contenidoModalEliminacion = document.querySelector(".admin-modal-confirmacion-contenido");
+const textoConfirmarEliminacion = document.querySelector("#texto-confirmar-eliminacion");
+const botonCancelarEliminacion = document.querySelector("#cancelar-eliminacion");
+const botonConfirmarEliminacion = document.querySelector("#confirmar-eliminacion");
 
 const previewImagenes = document.querySelector("#preview-imagenes");
 const previewVideo = document.querySelector("#preview-video");
@@ -41,6 +46,13 @@ const campos = {
     ubicacion: document.querySelector("#ubicacion"),
     metros: document.querySelector("#metros"),
     tipo: document.querySelector("#tipo"),
+    barrio: document.querySelector("#barrio"),
+    dormitorios: document.querySelector("#dormitorios"),
+    banos: document.querySelector("#banos"),
+    cochera: document.querySelector("#cochera"),
+    estado: document.querySelector("#estado"),
+    destacada: document.querySelector("#destacada"),
+    orden: document.querySelector("#orden"),
     whatsapp: document.querySelector("#whatsapp"),
     imagenes: document.querySelector("#imagenes"),
     imagenesArchivo: document.querySelector("#imagenes-archivo"),
@@ -50,6 +62,8 @@ const campos = {
 
 let propiedadEditando = null;
 let propiedadesActuales = [];
+let propiedadPendienteEliminar = null;
+let focoAntesModalEliminacion = null;
 
 function inferirTipoFondoDesdeArchivo(archivo) {
     if (!archivo) {
@@ -122,9 +136,62 @@ function obtenerMensajeUsuario(error, fallback) {
     return fallback || (error && error.message) || "Ocurrió un error inesperado.";
 }
 
+function obtenerNombrePropiedad(propiedad) {
+    return propiedad && propiedad.titulo ? propiedad.titulo : "esta propiedad";
+}
+
 function enfocarCampo(campo) {
     if (campo && typeof campo.focus === "function") {
         campo.focus();
+    }
+}
+
+function abrirModalEliminacion(propiedad, botonActivador) {
+    propiedadPendienteEliminar = propiedad;
+    focoAntesModalEliminacion = botonActivador || document.activeElement;
+    textoConfirmarEliminacion.textContent = "¿Seguro que querés eliminar \"" + obtenerNombrePropiedad(propiedad) + "\"? Esta acción no se puede deshacer.";
+    modalConfirmarEliminacion.classList.remove("oculto");
+    document.body.style.overflow = "hidden";
+
+    window.setTimeout(function () {
+        contenidoModalEliminacion.focus();
+    }, 0);
+}
+
+function cerrarModalEliminacion(mensaje) {
+    propiedadPendienteEliminar = null;
+    modalConfirmarEliminacion.classList.add("oculto");
+    document.body.style.overflow = "";
+
+    if (focoAntesModalEliminacion && typeof focoAntesModalEliminacion.focus === "function") {
+        focoAntesModalEliminacion.focus();
+    }
+
+    focoAntesModalEliminacion = null;
+
+    if (mensaje) {
+        mostrarMensaje(mensajeAdmin, mensaje);
+    }
+}
+
+async function eliminarPropiedadConfirmada(propiedad) {
+    try {
+        await window.propertiesService.deleteProperty(propiedad);
+        cerrarModalEliminacion();
+        await cargarPropiedades();
+
+        mostrarMensaje(mensajeAdmin, "Propiedad eliminada.", "exito");
+
+        if (propiedadEditando && String(propiedadEditando.id) === String(propiedad.id)) {
+            resetearFormularioPropiedad();
+        }
+    } catch (error) {
+        if (window.loggerService) {
+            window.loggerService.error("Error al eliminar propiedad desde admin.", error);
+        }
+
+        cerrarModalEliminacion();
+        mostrarMensaje(mensajeAdmin, obtenerMensajeUsuario(error, "No se pudo eliminar la propiedad. Intentá nuevamente."), "error");
     }
 }
 
@@ -153,6 +220,26 @@ function enfocarPrimerCampoErrorPropiedad(mensaje) {
 
     if (texto.includes("operación")) {
         enfocarCampo(campos.tipo);
+        return;
+    }
+
+    if (texto.includes("estado")) {
+        enfocarCampo(campos.estado);
+        return;
+    }
+
+    if (texto.includes("Dormitorios")) {
+        enfocarCampo(campos.dormitorios);
+        return;
+    }
+
+    if (texto.includes("Baños")) {
+        enfocarCampo(campos.banos);
+        return;
+    }
+
+    if (texto.includes("Orden")) {
+        enfocarCampo(campos.orden);
         return;
     }
 
@@ -457,6 +544,21 @@ function obtenerImagenesDesdeCampo() {
         });
 }
 
+function obtenerNumeroOpcional(campo) {
+    const valor = campo.value.trim();
+
+    if (valor === "") {
+        return null;
+    }
+
+    const numero = Number(valor);
+    return Number.isNaN(numero) ? null : numero;
+}
+
+function numeroOpcionalEsValido(campo) {
+    return campo.value.trim() === "" || obtenerNumeroOpcional(campo) !== null;
+}
+
 function archivoABase64(archivo) {
     return new Promise(function (resolve, reject) {
         const reader = new FileReader();
@@ -587,10 +689,16 @@ function crearPropiedadDesdeFormulario(imagenes, video) {
         ubicacion: campos.ubicacion.value.trim(),
         metros: campos.metros.value.trim(),
         tipo: campos.tipo.value,
+        barrio: campos.barrio.value.trim(),
+        dormitorios: obtenerNumeroOpcional(campos.dormitorios),
+        banos: obtenerNumeroOpcional(campos.banos),
+        cochera: campos.cochera.value === "true",
+        estado: campos.estado.value || "publicada",
+        destacada: campos.destacada.value === "true",
+        orden: obtenerNumeroOpcional(campos.orden) || 0,
         whatsapp: campos.whatsapp.value.trim(),
         imagenes: imagenes,
         video: video,
-        destacada: true,
         updated_at: new Date().toISOString()
     };
 }
@@ -618,6 +726,22 @@ function validarFormularioPropiedad() {
 
     if (campos.tipo.value === "") {
         return "Seleccioná si la propiedad es venta o alquiler.";
+    }
+
+    if (!["publicada", "borrador", "reservada"].includes(campos.estado.value)) {
+        return "Seleccioná un estado válido para la propiedad.";
+    }
+
+    if (!numeroOpcionalEsValido(campos.dormitorios) || obtenerNumeroOpcional(campos.dormitorios) < 0) {
+        return "Dormitorios debe ser un número válido y no negativo.";
+    }
+
+    if (!numeroOpcionalEsValido(campos.banos) || obtenerNumeroOpcional(campos.banos) < 0) {
+        return "Baños debe ser un número válido y no negativo.";
+    }
+
+    if (!numeroOpcionalEsValido(campos.orden) || obtenerNumeroOpcional(campos.orden) < 0) {
+        return "Orden debe ser un número válido y no negativo.";
     }
 
     if (campos.whatsapp.value.trim() === "") {
@@ -802,6 +926,9 @@ function renderizarPreviewHero() {
 function resetearFormularioPropiedad() {
     propiedadEditando = null;
     formPropiedad.reset();
+    campos.estado.value = "publicada";
+    campos.destacada.value = "true";
+    campos.cochera.value = "false";
 
     renderizarPreviewImagenes();
     renderizarPreviewVideo();
@@ -819,6 +946,15 @@ function cargarPropiedadParaEditar(propiedad) {
     campos.ubicacion.value = propiedad.ubicacion;
     campos.metros.value = propiedad.metros;
     campos.tipo.value = propiedad.tipo;
+    campos.barrio.value = propiedad.barrio || "";
+    campos.dormitorios.value = propiedad.dormitorios === null || propiedad.dormitorios === undefined
+        ? ""
+        : propiedad.dormitorios;
+    campos.banos.value = propiedad.banos === null || propiedad.banos === undefined ? "" : propiedad.banos;
+    campos.cochera.value = propiedad.cochera ? "true" : "false";
+    campos.estado.value = propiedad.estado || "publicada";
+    campos.destacada.value = propiedad.destacada === false ? "false" : "true";
+    campos.orden.value = propiedad.orden || "";
     campos.whatsapp.value = propiedad.whatsapp;
     campos.imagenes.value = propiedad.imagenes.join("\n");
     campos.video.value = propiedad.video || "";
@@ -891,6 +1027,32 @@ function renderizarPropiedadesAdmin() {
         contenido.appendChild(crearParrafo(propiedad.precio || ""));
         contenido.appendChild(crearParrafo(propiedad.ubicacion || ""));
         contenido.appendChild(crearParrafo((propiedad.metros || "") + " · " + (propiedad.tipo || "")));
+        contenido.appendChild(crearParrafo("Estado: " + (propiedad.estado || "publicada")));
+
+        if (propiedad.barrio) {
+            contenido.appendChild(crearParrafo("Barrio/zona: " + propiedad.barrio));
+        }
+
+        const detalles = [];
+
+        if (propiedad.dormitorios !== null && propiedad.dormitorios !== undefined) {
+            detalles.push(propiedad.dormitorios + " dormitorio/s");
+        }
+
+        if (propiedad.banos !== null && propiedad.banos !== undefined) {
+            detalles.push(propiedad.banos + " baño/s");
+        }
+
+        if (propiedad.cochera) {
+            detalles.push("Cochera");
+        }
+
+        if (detalles.length > 0) {
+            contenido.appendChild(crearParrafo(detalles.join(" · ")));
+        }
+
+        contenido.appendChild(crearParrafo(propiedad.destacada === false ? "No destacada" : "Destacada"));
+        contenido.appendChild(crearParrafo("Orden: " + (propiedad.orden || 0)));
         contenido.appendChild(crearParrafo(cantidadImagenes + " imagen/es"));
         contenido.appendChild(crearParrafo(propiedad.video ? "Incluye video" : "Sin video"));
 
@@ -1106,31 +1268,39 @@ listaPropiedades.addEventListener("click", async function (event) {
         return;
     }
 
-    const nombrePropiedad = propiedad.titulo || "esta propiedad";
-    const confirmaEliminacion = window.confirm(
-        "¿Seguro que querés eliminar \"" + nombrePropiedad + "\"?\n\nEsta acción no se puede deshacer."
-    );
+    abrirModalEliminacion(propiedad, botonAccion);
+});
 
-    if (!confirmaEliminacion) {
-        mostrarMensaje(mensajeAdmin, "Eliminación cancelada.");
+botonCancelarEliminacion.addEventListener("click", function () {
+    cerrarModalEliminacion("Eliminación cancelada.");
+});
+
+modalConfirmarEliminacion.addEventListener("click", function (event) {
+    if (event.target.dataset.cerrarConfirmacion === "true") {
+        cerrarModalEliminacion("Eliminación cancelada.");
+    }
+});
+
+botonConfirmarEliminacion.addEventListener("click", async function () {
+    if (!propiedadPendienteEliminar) {
+        cerrarModalEliminacion();
         return;
     }
 
+    botonConfirmarEliminacion.disabled = true;
+    botonConfirmarEliminacion.textContent = "Eliminando...";
+
     try {
-        await window.propertiesService.deleteProperty(propiedad);
-        await cargarPropiedades();
+        await eliminarPropiedadConfirmada(propiedadPendienteEliminar);
+    } finally {
+        botonConfirmarEliminacion.disabled = false;
+        botonConfirmarEliminacion.textContent = "Eliminar";
+    }
+});
 
-        mostrarMensaje(mensajeAdmin, "Propiedad eliminada.", "exito");
-
-        if (propiedadEditando && String(propiedadEditando.id) === String(propiedad.id)) {
-            resetearFormularioPropiedad();
-        }
-    } catch (error) {
-        if (window.loggerService) {
-            window.loggerService.error("Error al eliminar propiedad desde admin.", error);
-        }
-
-        mostrarMensaje(mensajeAdmin, obtenerMensajeUsuario(error, "No se pudo eliminar la propiedad. Intentá nuevamente."), "error");
+document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && !modalConfirmarEliminacion.classList.contains("oculto")) {
+        cerrarModalEliminacion("Eliminación cancelada.");
     }
 });
 

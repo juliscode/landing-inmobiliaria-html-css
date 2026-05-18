@@ -13,6 +13,32 @@ create table if not exists public.properties (
     updated_at timestamptz not null default now()
 );
 
+alter table public.properties add column if not exists bedrooms integer;
+alter table public.properties add column if not exists bathrooms integer;
+alter table public.properties add column if not exists garage boolean;
+alter table public.properties add column if not exists neighborhood text;
+alter table public.properties add column if not exists status text;
+alter table public.properties add column if not exists display_order integer;
+
+update public.properties set garage = false where garage is null;
+update public.properties set status = 'publicada' where status is null;
+update public.properties
+set status = 'publicada'
+where status not in ('publicada', 'borrador', 'reservada');
+update public.properties set display_order = 0 where display_order is null;
+
+alter table public.properties alter column garage set default false;
+alter table public.properties alter column garage set not null;
+alter table public.properties alter column status set default 'publicada';
+alter table public.properties alter column status set not null;
+alter table public.properties alter column display_order set default 0;
+alter table public.properties alter column display_order set not null;
+
+alter table public.properties drop constraint if exists properties_status_check;
+alter table public.properties
+    add constraint properties_status_check
+    check (status in ('publicada', 'borrador', 'reservada'));
+
 create table if not exists public.hero_content (
     id text primary key default 'main',
     title text not null,

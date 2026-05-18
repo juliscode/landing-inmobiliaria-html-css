@@ -59,6 +59,29 @@
         return [];
     }
 
+    function normalizeOptionalNumber(value) {
+        const numberValue = Number(value);
+
+        if (value === null || value === undefined || value === "" || Number.isNaN(numberValue)) {
+            return null;
+        }
+
+        return numberValue;
+    }
+
+    function sortProperties(propiedades) {
+        return propiedades.slice().sort(function (a, b) {
+            const ordenA = normalizeOptionalNumber(a.orden) || 0;
+            const ordenB = normalizeOptionalNumber(b.orden) || 0;
+
+            if (ordenA !== ordenB) {
+                return ordenA - ordenB;
+            }
+
+            return String(b.created_at || "").localeCompare(String(a.created_at || ""));
+        });
+    }
+
     function normalizeLocalProperty(propiedad, index) {
         return {
             id: propiedad.id || crearIdBase(index),
@@ -70,7 +93,13 @@
             whatsapp: propiedad.whatsapp || "",
             imagenes: normalizeImages(propiedad.imagenes),
             video: propiedad.video || "",
+            dormitorios: normalizeOptionalNumber(propiedad.dormitorios),
+            banos: normalizeOptionalNumber(propiedad.banos),
+            cochera: propiedad.cochera === true,
+            barrio: propiedad.barrio || "",
+            estado: propiedad.estado || "publicada",
             destacada: propiedad.destacada !== false,
+            orden: normalizeOptionalNumber(propiedad.orden) || 0,
             created_at: propiedad.created_at || null,
             updated_at: propiedad.updated_at || null,
             origen: propiedad.origen || "base"
@@ -88,7 +117,13 @@
             whatsapp: row.whatsapp_url || row.whatsapp || "",
             imagenes: normalizeImages(row.images || row.imagenes),
             video: row.video_url || row.video || "",
+            dormitorios: normalizeOptionalNumber(row.bedrooms !== undefined ? row.bedrooms : row.dormitorios),
+            banos: normalizeOptionalNumber(row.bathrooms !== undefined ? row.bathrooms : row.banos),
+            cochera: row.garage === true || row.cochera === true,
+            barrio: row.neighborhood || row.barrio || "",
+            estado: row.status || row.estado || "publicada",
             destacada: row.is_featured,
+            orden: normalizeOptionalNumber(row.display_order !== undefined ? row.display_order : row.orden) || 0,
             created_at: row.created_at,
             updated_at: row.updated_at,
             origen: "supabase"
@@ -105,7 +140,13 @@
             whatsapp_url: propiedad.whatsapp,
             images: propiedad.imagenes,
             video_url: propiedad.video || null,
-            is_featured: propiedad.destacada !== false
+            is_featured: propiedad.destacada !== false,
+            bedrooms: normalizeOptionalNumber(propiedad.dormitorios),
+            bathrooms: normalizeOptionalNumber(propiedad.banos),
+            garage: propiedad.cochera === true,
+            neighborhood: propiedad.barrio || null,
+            status: propiedad.estado || "publicada",
+            display_order: normalizeOptionalNumber(propiedad.orden) || 0
         };
     }
 
@@ -163,7 +204,7 @@
     }
 
     function listLocal() {
-        return obtenerPropiedadesBaseLocal().concat(obtenerPropiedadesAdminLocal());
+        return sortProperties(obtenerPropiedadesBaseLocal().concat(obtenerPropiedadesAdminLocal()));
     }
 
     async function listProperties() {
@@ -206,7 +247,7 @@
         }
 
         logger().info("Propiedades cargadas desde Supabase.");
-        return propiedadesSupabase;
+        return sortProperties(propiedadesSupabase);
     }
 
     async function saveProperty(propiedad, context) {
