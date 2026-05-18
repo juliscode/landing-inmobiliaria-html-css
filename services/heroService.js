@@ -2,6 +2,17 @@
     const STORAGE_HERO = "heroAdmin";
     const SUPABASE_TIMEOUT_MS = 7000;
 
+    function logger() {
+        return window.loggerService || {
+            info: function () {},
+            warn: function () {},
+            error: function () {},
+            getUserMessage: function (error, fallback) {
+                return fallback || error.message;
+            }
+        };
+    }
+
     function withTimeout(promise) {
         return Promise.race([
             promise,
@@ -84,13 +95,13 @@
                     .maybeSingle()
             );
         } catch (error) {
-            console.warn("Supabase hero fallback:", error.message);
+            logger().warn("No se pudo cargar el hero desde Supabase. Usando fallback local.", error);
             return getLocalHero();
         }
 
         if (result.error || !result.data) {
             if (result.error) {
-                console.warn("Supabase hero fallback:", result.error.message);
+                logger().warn("Supabase devolvió error al cargar hero. Usando fallback local.", result.error);
             }
 
             return getLocalHero();
@@ -120,11 +131,13 @@
                     .single()
             );
         } catch (error) {
-            throw new Error("No se pudo guardar el hero en Supabase: " + error.message);
+            logger().error("No se pudo guardar el hero en Supabase.", error);
+            throw new Error(logger().getUserMessage(error, "No se pudo guardar el hero. Intentá nuevamente."));
         }
 
         if (result.error) {
-            throw result.error;
+            logger().error("Supabase rechazó el guardado del hero.", result.error);
+            throw new Error(logger().getUserMessage(result.error, "No se pudo guardar el hero. Intentá nuevamente."));
         }
 
         return fromSupabase(result.data);

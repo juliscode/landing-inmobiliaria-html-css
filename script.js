@@ -486,6 +486,8 @@ function mostrarMedioActual() {
 
 async function inicializarLanding() {
     loader.style.display = "block";
+    loader.textContent = "Cargando propiedades...";
+    contenedorPropiedades.replaceChildren();
 
     try {
         const hero = await window.heroService.getHero();
@@ -496,11 +498,15 @@ async function inicializarLanding() {
         aplicarHero(hero);
         refrescarPropiedades();
     } catch (error) {
-        console.error(error);
+        if (window.loggerService) {
+            window.loggerService.error("No se pudo inicializar la landing.", error);
+        }
 
         const mensaje = document.createElement("p");
         mensaje.className = "mensaje-vacio";
-        mensaje.textContent = "No pudimos cargar las propiedades. Intentá nuevamente más tarde.";
+        mensaje.textContent = window.loggerService
+            ? window.loggerService.getUserMessage(error, "No pudimos cargar las propiedades. Intentá nuevamente más tarde.")
+            : "No pudimos cargar las propiedades. Intentá nuevamente más tarde.";
         contenedorPropiedades.replaceChildren(mensaje);
     } finally {
         loader.style.display = "none";

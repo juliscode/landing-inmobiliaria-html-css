@@ -3,6 +3,17 @@
     const STORAGE_OVERRIDES = "propiedadesBaseOverrides";
     const SUPABASE_TIMEOUT_MS = 7000;
 
+    function logger() {
+        return window.loggerService || {
+            info: function () {},
+            warn: function () {},
+            error: function () {},
+            getUserMessage: function (error, fallback) {
+                return fallback || error.message;
+            }
+        };
+    }
+
     function withTimeout(promise) {
         return Promise.race([
             promise,
@@ -22,7 +33,7 @@
         try {
             return JSON.parse(localStorage.getItem(clave)) || fallback;
         } catch (error) {
-            console.warn("No se pudo leer " + clave + " desde localStorage:", error.message);
+            logger().warn("No se pudo leer datos locales de propiedades.", error);
             return fallback;
         }
     }
@@ -159,7 +170,7 @@
         const supabase = window.supabaseClientService.getSupabaseClient();
 
         if (!supabase) {
-            console.info("Supabase no configurado. Usando propiedades locales.");
+            logger().info("Supabase no configurado. Usando propiedades locales.");
             return listLocal();
         }
 
@@ -173,28 +184,28 @@
                     .order("created_at", { ascending: false })
             );
         } catch (error) {
-            console.warn("Supabase properties fallback: la consulta falló. Usando propiedades locales.", error.message);
+            logger().warn("La consulta de propiedades falló. Usando fallback local.", error);
             return listLocal();
         }
 
         if (result.error) {
-            console.warn("Supabase properties fallback: Supabase devolvió error. Usando propiedades locales.", result.error.message);
+            logger().warn("Supabase devolvió error al listar propiedades. Usando fallback local.", result.error);
             return listLocal();
         }
 
         if (!result.data || result.data.length === 0) {
-            console.warn("Supabase properties fallback: la tabla properties está vacía. Usando propiedades locales.");
+            logger().warn("La tabla properties está vacía. Usando fallback local.");
             return listLocal();
         }
 
         const propiedadesSupabase = result.data.map(fromSupabase);
 
         if (propiedadesSupabase.length === 0) {
-            console.warn("Supabase properties fallback: no se pudieron normalizar propiedades. Usando propiedades locales.");
+            logger().warn("No se pudieron normalizar propiedades. Usando fallback local.");
             return listLocal();
         }
 
-        console.info("Propiedades cargadas desde Supabase:", propiedadesSupabase.length);
+        logger().info("Propiedades cargadas desde Supabase.");
         return propiedadesSupabase;
     }
 

@@ -114,6 +114,14 @@ function mostrarMensaje(elemento, texto, tipo) {
     }
 }
 
+function obtenerMensajeUsuario(error, fallback) {
+    if (window.loggerService) {
+        return window.loggerService.getUserMessage(error, fallback);
+    }
+
+    return fallback || (error && error.message) || "Ocurrió un error inesperado.";
+}
+
 function enfocarCampo(campo) {
     if (campo && typeof campo.focus === "function") {
         campo.focus();
@@ -900,8 +908,22 @@ function renderizarPropiedadesAdmin() {
 }
 
 async function cargarPropiedades() {
-    propiedadesActuales = await window.propertiesService.listProperties();
-    renderizarPropiedadesAdmin();
+    contadorPropiedades.textContent = "0";
+    listaPropiedades.replaceChildren(crearParrafo("Cargando propiedades...", "admin-vacio"));
+
+    try {
+        propiedadesActuales = await window.propertiesService.listProperties();
+        renderizarPropiedadesAdmin();
+    } catch (error) {
+        if (window.loggerService) {
+            window.loggerService.error("No se pudieron cargar propiedades en admin.", error);
+        }
+
+        propiedadesActuales = [];
+        listaPropiedades.replaceChildren(
+            crearParrafo(obtenerMensajeUsuario(error, "No pudimos cargar las propiedades. Intentá nuevamente."), "admin-vacio")
+        );
+    }
 }
 
 async function cargarHeroEnFormulario() {
@@ -949,7 +971,11 @@ formHero.addEventListener("submit", async function (event) {
 
         mostrarMensaje(mensajeHero, "Hero guardado correctamente.", "exito");
     } catch (error) {
-        mostrarMensaje(mensajeHero, "Error al guardar hero: " + error.message, "error");
+        if (window.loggerService) {
+            window.loggerService.error("Error al guardar hero desde admin.", error);
+        }
+
+        mostrarMensaje(mensajeHero, obtenerMensajeUsuario(error, "No se pudo guardar el hero. Intentá nuevamente."), "error");
     }
 });
 
@@ -967,7 +993,11 @@ botonRestaurarHero.addEventListener("click", async function () {
 
         mostrarMensaje(mensajeHero, "Hero restaurado al contenido original.", "exito");
     } catch (error) {
-        mostrarMensaje(mensajeHero, "Error al restaurar hero: " + error.message, "error");
+        if (window.loggerService) {
+            window.loggerService.error("Error al restaurar hero desde admin.", error);
+        }
+
+        mostrarMensaje(mensajeHero, obtenerMensajeUsuario(error, "No se pudo restaurar el hero. Intentá nuevamente."), "error");
     }
 });
 
@@ -1043,7 +1073,11 @@ formPropiedad.addEventListener("submit", async function (event) {
 
         mostrarMensaje(mensajeAdmin, "Propiedad guardada correctamente.", "exito");
     } catch (error) {
-        mostrarMensaje(mensajeAdmin, "Error al guardar: " + error.message, "error");
+        if (window.loggerService) {
+            window.loggerService.error("Error al guardar propiedad desde admin.", error);
+        }
+
+        mostrarMensaje(mensajeAdmin, obtenerMensajeUsuario(error, "No se pudo guardar la propiedad. Intentá nuevamente."), "error");
     } finally {
         setGuardando(false);
     }
@@ -1082,7 +1116,11 @@ listaPropiedades.addEventListener("click", async function (event) {
             resetearFormularioPropiedad();
         }
     } catch (error) {
-        mostrarMensaje(mensajeAdmin, "Error al eliminar: " + error.message, "error");
+        if (window.loggerService) {
+            window.loggerService.error("Error al eliminar propiedad desde admin.", error);
+        }
+
+        mostrarMensaje(mensajeAdmin, obtenerMensajeUsuario(error, "No se pudo eliminar la propiedad. Intentá nuevamente."), "error");
     }
 });
 
@@ -1100,7 +1138,11 @@ migrarBaseBtn.addEventListener("click", async function () {
 
         mostrarMensaje(mensajeAdmin, total + " propiedad/es base migradas a Supabase.", "exito");
     } catch (error) {
-        mostrarMensaje(mensajeAdmin, "No se pudo migrar: " + error.message, "error");
+        if (window.loggerService) {
+            window.loggerService.error("Error al migrar propiedades base.", error);
+        }
+
+        mostrarMensaje(mensajeAdmin, obtenerMensajeUsuario(error, "No se pudieron migrar las propiedades. Intentá nuevamente."), "error");
     }
 });
 

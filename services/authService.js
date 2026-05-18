@@ -1,4 +1,15 @@
 (function () {
+    function logger() {
+        return window.loggerService || {
+            info: function () {},
+            warn: function () {},
+            error: function () {},
+            getUserMessage: function (error, fallback) {
+                return fallback || error.message;
+            }
+        };
+    }
+
     async function getSession() {
         const supabase = window.supabaseClientService.getSupabaseClient();
 
@@ -32,8 +43,9 @@
         try {
             admin = await isAdmin(result.data.session);
         } catch (error) {
+            logger().warn("No se pudo verificar permisos de administrador al iniciar sesión.", error);
             await signOut();
-            throw error;
+            throw new Error(logger().getUserMessage(error, "No pudimos verificar tus permisos. Intentá nuevamente."));
         }
 
         if (!admin) {
@@ -65,6 +77,7 @@
         try {
             admin = await isAdmin(session);
         } catch (error) {
+            logger().warn("No se pudo verificar permisos de administrador.", error);
             await signOut();
             window.location.replace("login.html");
             return false;
