@@ -1106,6 +1106,16 @@ listaPropiedades.addEventListener("click", async function (event) {
         return;
     }
 
+    const nombrePropiedad = propiedad.titulo || "esta propiedad";
+    const confirmaEliminacion = window.confirm(
+        "¿Seguro que querés eliminar \"" + nombrePropiedad + "\"?\n\nEsta acción no se puede deshacer."
+    );
+
+    if (!confirmaEliminacion) {
+        mostrarMensaje(mensajeAdmin, "Eliminación cancelada.");
+        return;
+    }
+
     try {
         await window.propertiesService.deleteProperty(propiedad);
         await cargarPropiedades();
