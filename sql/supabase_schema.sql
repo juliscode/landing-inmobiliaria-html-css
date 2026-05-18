@@ -23,6 +23,12 @@ create table if not exists public.hero_content (
     updated_at timestamptz not null default now()
 );
 
+create table if not exists public.admin_users (
+    user_id uuid primary key references auth.users(id) on delete cascade,
+    email text,
+    created_at timestamptz not null default now()
+);
+
 create or replace function public.set_updated_at()
 returns trigger as $$
 begin
@@ -30,6 +36,20 @@ begin
     return new;
 end;
 $$ language plpgsql;
+
+create or replace function public.is_admin(user_id_to_check uuid default auth.uid())
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+    select exists (
+        select 1
+        from public.admin_users
+        where user_id = user_id_to_check
+    );
+$$;
 
 drop trigger if exists set_properties_updated_at on public.properties;
 create trigger set_properties_updated_at
@@ -45,6 +65,13 @@ execute function public.set_updated_at();
 
 alter table public.properties enable row level security;
 alter table public.hero_content enable row level security;
+alter table public.admin_users enable row level security;
+
+drop policy if exists "Admins can read their own admin row" on public.admin_users;
+create policy "Admins can read their own admin row"
+on public.admin_users for select
+to authenticated
+using (user_id = auth.uid());
 
 drop policy if exists "Public can read properties" on public.properties;
 create policy "Public can read properties"
@@ -55,8 +82,8 @@ drop policy if exists "Authenticated admins can write properties" on public.prop
 create policy "Authenticated admins can write properties"
 on public.properties for all
 to authenticated
-using (true)
-with check (true);
+using (public.is_admin())
+with check (public.is_admin());
 
 drop policy if exists "Public can read hero" on public.hero_content;
 create policy "Public can read hero"
@@ -67,8 +94,8 @@ drop policy if exists "Authenticated admins can write hero" on public.hero_conte
 create policy "Authenticated admins can write hero"
 on public.hero_content for all
 to authenticated
-using (true)
-with check (true);
+using (public.is_admin())
+with check (public.is_admin());
 
 insert into storage.buckets (id, name, public)
 values
@@ -86,17 +113,29 @@ drop policy if exists "Authenticated admins can upload media" on storage.objects
 create policy "Authenticated admins can upload media"
 on storage.objects for insert
 to authenticated
-with check (bucket_id in ('property-images', 'property-videos', 'hero-media'));
+with check (
+    bucket_id in ('property-images', 'property-videos', 'hero-media')
+    and public.is_admin()
+);
 
 drop policy if exists "Authenticated admins can update media" on storage.objects;
 create policy "Authenticated admins can update media"
 on storage.objects for update
 to authenticated
-using (bucket_id in ('property-images', 'property-videos', 'hero-media'))
-with check (bucket_id in ('property-images', 'property-videos', 'hero-media'));
+using (
+    bucket_id in ('property-images', 'property-videos', 'hero-media')
+    and public.is_admin()
+)
+with check (
+    bucket_id in ('property-images', 'property-videos', 'hero-media')
+    and public.is_admin()
+);
 
 drop policy if exists "Authenticated admins can delete media" on storage.objects;
 create policy "Authenticated admins can delete media"
 on storage.objects for delete
 to authenticated
-using (bucket_id in ('property-images', 'property-videos', 'hero-media'));
+using (
+    bucket_id in ('property-images', 'property-videos', 'hero-media')
+    and public.is_admin()
+);

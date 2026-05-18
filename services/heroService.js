@@ -54,6 +54,18 @@
         localStorage.setItem(STORAGE_HERO, JSON.stringify(hero));
     }
 
+    async function requireAdminPermission() {
+        if (!window.authService || !window.authService.isAdmin) {
+            throw new Error("No se pudo verificar el permiso de administrador.");
+        }
+
+        const admin = await window.authService.isAdmin();
+
+        if (!admin) {
+            throw new Error("Tu usuario no tiene permisos de administrador.");
+        }
+    }
+
     async function getHero() {
         const supabase = window.supabaseClientService.getSupabaseClient();
 
@@ -88,6 +100,8 @@
     }
 
     async function saveHero(hero) {
+        await requireAdminPermission();
+
         const supabase = window.supabaseClientService.getSupabaseClient();
 
         if (!supabase) {
@@ -106,27 +120,29 @@
                     .single()
             );
         } catch (error) {
-            console.warn("Supabase hero local fallback:", error.message);
-            saveLocalHero(hero);
-            return hero;
+            throw new Error("No se pudo guardar el hero en Supabase: " + error.message);
         }
 
         if (result.error) {
-            console.warn("Supabase hero local fallback:", result.error.message);
-            saveLocalHero(hero);
-            return hero;
+            throw result.error;
         }
 
         return fromSupabase(result.data);
     }
 
     async function restoreHero() {
+        await requireAdminPermission();
+
         const supabase = window.supabaseClientService.getSupabaseClient();
 
         localStorage.removeItem(STORAGE_HERO);
 
         if (supabase) {
-            await supabase.from("hero_content").delete().eq("id", "main");
+            const result = await supabase.from("hero_content").delete().eq("id", "main");
+
+            if (result.error) {
+                throw result.error;
+            }
         }
 
         return getDefaultHero();

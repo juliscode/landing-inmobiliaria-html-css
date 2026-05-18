@@ -5,11 +5,35 @@ const loginMensaje = document.querySelector("#login-mensaje");
 const loginSubmit = document.querySelector("#login-submit");
 
 async function redirigirSiYaTieneSesion() {
-    const session = await window.authService.getSession();
+    let session;
 
-    if (session) {
-        window.location.replace("admin.html");
+    try {
+        session = await window.authService.getSession();
+    } catch (error) {
+        loginMensaje.textContent = "No se pudo verificar la sesión: " + error.message;
+        return;
     }
+
+    if (!session) {
+        return;
+    }
+
+    let admin;
+
+    try {
+        admin = await window.authService.isAdmin(session);
+    } catch (error) {
+        loginMensaje.textContent = "No se pudo verificar permisos: " + error.message;
+        return;
+    }
+
+    if (admin) {
+        window.location.replace("admin.html");
+        return;
+    }
+
+    await window.authService.signOut();
+    loginMensaje.textContent = "Tu usuario no tiene permisos de administrador.";
 }
 
 loginForm.addEventListener("submit", async function (event) {

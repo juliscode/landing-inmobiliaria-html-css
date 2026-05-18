@@ -98,6 +98,18 @@
         };
     }
 
+    async function requireAdminPermission() {
+        if (!window.authService || !window.authService.isAdmin) {
+            throw new Error("No se pudo verificar el permiso de administrador.");
+        }
+
+        const admin = await window.authService.isAdmin();
+
+        if (!admin) {
+            throw new Error("Tu usuario no tiene permisos de administrador.");
+        }
+    }
+
     function obtenerOverridesBase() {
         return leerJsonLocalStorage(STORAGE_OVERRIDES, {});
     }
@@ -187,6 +199,8 @@
     }
 
     async function saveProperty(propiedad, context) {
+        await requireAdminPermission();
+
         const supabase = window.supabaseClientService.getSupabaseClient();
 
         if (supabase && propiedad.origen !== "base") {
@@ -258,6 +272,8 @@
     }
 
     async function deleteProperty(propiedad) {
+        await requireAdminPermission();
+
         const supabase = window.supabaseClientService.getSupabaseClient();
 
         if (supabase && propiedad.origen === "supabase") {
@@ -284,6 +300,8 @@
     }
 
     async function migrateBasePropertiesToSupabase() {
+        await requireAdminPermission();
+
         const supabase = window.supabaseClientService.getSupabaseClient();
 
         if (!supabase) {

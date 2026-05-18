@@ -35,7 +35,21 @@
         return folder + "/" + Date.now() + "-" + safeName + "." + extension;
     }
 
+    async function requireAdminPermission() {
+        if (!window.authService || !window.authService.isAdmin) {
+            throw new Error("No se pudo verificar el permiso de administrador.");
+        }
+
+        const admin = await window.authService.isAdmin();
+
+        if (!admin) {
+            throw new Error("Tu usuario no tiene permisos de administrador.");
+        }
+    }
+
     async function uploadFile(file, bucket, folder) {
+        await requireAdminPermission();
+
         const supabase = window.supabaseClientService.getSupabaseClient();
 
         if (!supabase) {
@@ -53,13 +67,11 @@
                 })
             );
         } catch (error) {
-            console.warn("Storage fallback base64:", error.message);
-            return fileToBase64(file);
+            throw new Error("No se pudo subir el archivo a Supabase Storage: " + error.message);
         }
 
         if (result.error) {
-            console.warn("Storage fallback base64:", result.error.message);
-            return fileToBase64(file);
+            throw result.error;
         }
 
         const publicUrlResult = supabase.storage.from(bucket).getPublicUrl(path);
