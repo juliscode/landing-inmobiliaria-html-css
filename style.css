@@ -203,10 +203,12 @@ video:focus-visible,
 }
 
 .contenedor-cards {
+    width: min(100%, 1050px);
+    margin: 40px auto 0;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    justify-items: center;
     gap: 30px;
-    margin-top: 40px;
 }
 
 .card {
