@@ -10,12 +10,14 @@
 
 html {
     scroll-behavior: smooth;
+    overscroll-behavior-y: none;
 }
 
 body {
     margin: 0;
     background-color: var(--color-blanco);
     color: var(--color-negro);
+    overscroll-behavior-y: none;
 }
 
 .boton-principal {
@@ -375,6 +377,7 @@ video:focus-visible,
     backdrop-filter: blur(4px);
     padding: 24px;
     z-index: 2000;
+    overscroll-behavior: none;
 }
 
 .modal.abierto {
@@ -392,6 +395,7 @@ video:focus-visible,
     position: relative;
     box-shadow: 0 24px 70px rgba(0,0,0,0.35);
     animation: modalEntrada 0.3s ease;
+    overscroll-behavior: contain;
 }
 
 #cerrar-modal {
