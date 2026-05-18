@@ -114,6 +114,68 @@ function mostrarMensaje(elemento, texto, tipo) {
     }
 }
 
+function enfocarCampo(campo) {
+    if (campo && typeof campo.focus === "function") {
+        campo.focus();
+    }
+}
+
+function enfocarPrimerCampoErrorPropiedad(mensaje) {
+    const texto = String(mensaje || "");
+
+    if (texto.includes("título")) {
+        enfocarCampo(campos.titulo);
+        return;
+    }
+
+    if (texto.includes("precio")) {
+        enfocarCampo(campos.precio);
+        return;
+    }
+
+    if (texto.includes("ubicación")) {
+        enfocarCampo(campos.ubicacion);
+        return;
+    }
+
+    if (texto.includes("metros")) {
+        enfocarCampo(campos.metros);
+        return;
+    }
+
+    if (texto.includes("operación")) {
+        enfocarCampo(campos.tipo);
+        return;
+    }
+
+    if (texto.includes("WhatsApp")) {
+        enfocarCampo(campos.whatsapp);
+        return;
+    }
+
+    if (texto.includes("imagen")) {
+        enfocarCampo(campos.imagenes);
+        return;
+    }
+
+    if (texto.includes("video")) {
+        enfocarCampo(campos.video);
+    }
+}
+
+function enfocarPrimerCampoErrorHero(mensaje) {
+    const texto = String(mensaje || "");
+
+    if (texto.includes("título")) {
+        enfocarCampo(camposHero.titulo);
+        return;
+    }
+
+    if (texto.includes("URL") || texto.includes("fondo") || texto.includes("archivo")) {
+        enfocarCampo(camposHero.fondo);
+    }
+}
+
 function limpiarElemento(elemento) {
     while (elemento.firstChild) {
         elemento.removeChild(elemento.firstChild);
@@ -861,6 +923,7 @@ formHero.addEventListener("submit", async function (event) {
 
     if (errorHero !== "") {
         mostrarMensaje(mensajeHero, errorHero, "error");
+        enfocarPrimerCampoErrorHero(errorHero);
         return;
     }
 
@@ -962,6 +1025,7 @@ formPropiedad.addEventListener("submit", async function (event) {
 
     if (errorValidacion !== "") {
         mostrarMensaje(mensajeAdmin, errorValidacion, "error");
+        enfocarPrimerCampoErrorPropiedad(errorValidacion);
         return;
     }
 

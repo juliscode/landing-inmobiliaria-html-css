@@ -133,6 +133,15 @@ body {
     box-shadow: 0 12px 28px rgba(109,18,18,0.12);
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid rgba(109,18,18,0.45);
+    outline-offset: 3px;
+}
+
 .admin-form textarea {
     min-height: 118px;
     resize: vertical;

@@ -17,11 +17,11 @@
 
     <h2 class="logo">DIVARVARO</h2>
 
-    <button class="menu-toggle" aria-label="Abrir menú">
+    <button class="menu-toggle" aria-label="Abrir menú" aria-controls="nav-links" aria-expanded="false">
     ☰
     </button>
 
-    <ul class="nav-links">
+    <ul class="nav-links" id="nav-links">
         <li><a href="#inicio">Inicio</a></li>
         <li><a href="#propiedades">Propiedades</a></li>
         <li><a href="#contacto">Contacto</a></li>
@@ -53,10 +53,11 @@
 
     <h2>Propiedades destacadas</h2>
 
-    <input 
+    <input
     type="text" 
     id="buscador"
     placeholder="Buscar propiedad..."
+    aria-label="Buscar propiedad"
 >
 
 <div class="filtros">
@@ -141,7 +142,7 @@
 
 <div class="modal" id="modal" aria-hidden="true">
 
-    <div class="modal-contenido" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+    <div class="modal-contenido" role="dialog" aria-modal="true" aria-labelledby="modal-titulo" aria-describedby="modal-precio modal-ubicacion modal-metros modal-tipo" tabindex="-1">
 
         <button id="cerrar-modal" type="button" aria-label="Cerrar modal">
             <i class="fa-solid fa-xmark"></i>

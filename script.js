@@ -10,6 +10,7 @@ const botonesFiltro = document.querySelectorAll(".filtro-btn");
 const loader = document.querySelector("#loader");
 
 const modal = document.querySelector("#modal");
+const modalContenido = document.querySelector(".modal-contenido");
 const modalTitulo = document.querySelector("#modal-titulo");
 const modalPrecio = document.querySelector("#modal-precio");
 const modalUbicacion = document.querySelector("#modal-ubicacion");
@@ -32,7 +33,14 @@ let filtroActual = "todas";
 let medioActual = 0;
 let mediosActuales = [];
 let favoritos = obtenerFavoritosGuardados();
+let ultimoFocoAntesDelModal = null;
 const imagenFallback = "assets/imagenes/casa.jpg";
+const selectoresFocoModal = [
+    "a[href]",
+    "button:not([disabled])",
+    "video[controls]",
+    "[tabindex]:not([tabindex='-1'])"
+].join(",");
 
 botonHero.addEventListener("click", function () {
     const seccionPropiedades = document.querySelector("#propiedades");
@@ -146,6 +154,12 @@ function crearIconoFavorito(id, titulo) {
     return icono;
 }
 
+function actualizarAriaFavorito(elemento, id, titulo) {
+    const accion = esFavorito(id, titulo) ? "Quitar de favoritos" : "Agregar a favoritos";
+
+    elemento.setAttribute("aria-label", accion + ": " + String(titulo || "propiedad"));
+}
+
 function guardarFavoritos() {
     localStorage.setItem("favoritos", JSON.stringify(favoritos));
 }
@@ -178,11 +192,13 @@ function actualizarIconosFavorito(id, titulo) {
     document.querySelectorAll(".favorito").forEach(function (favoritoElemento) {
         if (favoritoElemento.dataset.id === idFavorito) {
             favoritoElemento.replaceChildren(crearIconoFavorito(id, titulo));
+            actualizarAriaFavorito(favoritoElemento, id, titulo);
         }
     });
 
     if (modalFavorito.dataset.id === idFavorito) {
         modalFavorito.replaceChildren(crearIconoFavorito(id, titulo));
+        actualizarAriaFavorito(modalFavorito, id, titulo);
     }
 }
 
@@ -354,10 +370,12 @@ function crearCardPropiedad(propiedad) {
     titulo.textContent = tituloPropiedad;
     card.appendChild(titulo);
 
-    const favorito = document.createElement("p");
+    const favorito = document.createElement("button");
+    favorito.type = "button";
     favorito.className = "favorito";
     favorito.dataset.id = idPropiedad;
     favorito.dataset.titulo = tituloPropiedad;
+    actualizarAriaFavorito(favorito, idPropiedad, tituloPropiedad);
     favorito.appendChild(crearIconoFavorito(idPropiedad, tituloPropiedad));
     card.appendChild(favorito);
 
@@ -373,6 +391,7 @@ function crearCardPropiedad(propiedad) {
     botonVerMas.type = "button";
     botonVerMas.className = "boton-principal boton-ver-mas";
     botonVerMas.dataset.id = idPropiedad;
+    botonVerMas.setAttribute("aria-label", "Ver más sobre " + tituloPropiedad);
     botonVerMas.textContent = "Ver más";
     acciones.appendChild(botonVerMas);
 
@@ -410,10 +429,22 @@ function refrescarPropiedades() {
     mostrarPropiedades(obtenerPropiedadesFiltradas());
 }
 
-function abrirModal() {
+function obtenerElementosFocoModal() {
+    return Array.from(modal.querySelectorAll(selectoresFocoModal)).filter(function (elemento) {
+        return elemento.offsetParent !== null && elemento.getAttribute("aria-disabled") !== "true";
+    });
+}
+
+function enfocarModal() {
+    modalContenido.focus();
+}
+
+function abrirModal(elementoActivador) {
+    ultimoFocoAntesDelModal = elementoActivador || document.activeElement;
     modal.classList.add("abierto");
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
+    window.setTimeout(enfocarModal, 0);
 }
 
 function cerrarModalPropiedad() {
@@ -422,6 +453,10 @@ function cerrarModalPropiedad() {
     document.body.style.overflow = "";
 
     modalVideo.pause();
+
+    if (ultimoFocoAntesDelModal && typeof ultimoFocoAntesDelModal.focus === "function") {
+        ultimoFocoAntesDelModal.focus();
+    }
 }
 
 function mostrarMedioActual() {
@@ -505,19 +540,25 @@ document.addEventListener("click", function (event) {
             modalWhatsapp.href = whatsapp;
             modalWhatsapp.target = "_blank";
             modalWhatsapp.rel = "noopener noreferrer";
+            modalWhatsapp.tabIndex = 0;
             modalWhatsapp.removeAttribute("aria-disabled");
+            modalWhatsapp.setAttribute("aria-label", "Consultar por WhatsApp sobre " + titulo);
         } else {
             modalWhatsapp.removeAttribute("href");
+            modalWhatsapp.tabIndex = -1;
             modalWhatsapp.setAttribute("aria-disabled", "true");
+            modalWhatsapp.setAttribute("aria-label", "WhatsApp no disponible para " + titulo);
         }
         modalMapa.href = crearUrlMapa(ubicacion);
+        modalMapa.setAttribute("aria-label", "Ver ubicación de " + titulo);
         modalFavorito.dataset.id = idPropiedad;
         modalFavorito.dataset.titulo = titulo;
         modalFavorito.replaceChildren(crearIconoFavorito(idPropiedad, titulo));
+        actualizarAriaFavorito(modalFavorito, idPropiedad, titulo);
         modalImagen.alt = titulo;
 
         mostrarMedioActual();
-        abrirModal();
+        abrirModal(botonVerMas);
     }
 });
 
@@ -542,13 +583,54 @@ modal.addEventListener("click", function (event) {
 });
 
 document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape" && modal.classList.contains("abierto")) {
+    if (!modal.classList.contains("abierto")) {
+        return;
+    }
+
+    if (event.key === "Escape") {
         cerrarModalPropiedad();
+        return;
+    }
+
+    if (event.key !== "Tab") {
+        return;
+    }
+
+    const elementosFoco = obtenerElementosFocoModal();
+
+    if (elementosFoco.length === 0) {
+        event.preventDefault();
+        enfocarModal();
+        return;
+    }
+
+    const primerElemento = elementosFoco[0];
+    const ultimoElemento = elementosFoco[elementosFoco.length - 1];
+
+    if (event.shiftKey && document.activeElement === primerElemento) {
+        event.preventDefault();
+        ultimoElemento.focus();
+        return;
+    }
+
+    if (!event.shiftKey && document.activeElement === ultimoElemento) {
+        event.preventDefault();
+        primerElemento.focus();
     }
 });
 
 menuToggle.addEventListener("click", function () {
-    navLinks.classList.toggle("activo");
+    const menuAbierto = navLinks.classList.toggle("activo");
+    menuToggle.setAttribute("aria-expanded", String(menuAbierto));
+    menuToggle.setAttribute("aria-label", menuAbierto ? "Cerrar menú" : "Abrir menú");
+});
+
+navLinks.querySelectorAll("a").forEach(function (link) {
+    link.addEventListener("click", function () {
+        navLinks.classList.remove("activo");
+        menuToggle.setAttribute("aria-expanded", "false");
+        menuToggle.setAttribute("aria-label", "Abrir menú");
+    });
 });
 
 botonesFiltro.forEach(function (boton) {

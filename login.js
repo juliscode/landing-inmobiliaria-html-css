@@ -47,6 +47,7 @@ loginForm.addEventListener("submit", async function (event) {
     } catch (error) {
         loginMensaje.textContent = "No se pudo iniciar sesión: " + error.message;
         loginSubmit.disabled = false;
+        loginEmail.focus();
     }
 });
 

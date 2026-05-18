@@ -191,6 +191,15 @@ button:hover {
     box-shadow: 0 14px 34px rgba(109,18,18,0.16);
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+video:focus-visible,
+.modal-contenido:focus-visible {
+    outline: 3px solid rgba(109,18,18,0.45);
+    outline-offset: 3px;
+}
+
 .contenedor-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -696,6 +705,8 @@ button:hover {
     font-size: 22px;
 
     cursor: pointer;
+
+    border: none;
 
     transition: transform 0.3s;
 
