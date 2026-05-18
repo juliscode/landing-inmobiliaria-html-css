@@ -105,14 +105,155 @@ function mostrarMensaje(elemento, texto, tipo) {
     }
 }
 
+function limpiarElemento(elemento) {
+    while (elemento.firstChild) {
+        elemento.removeChild(elemento.firstChild);
+    }
+}
+
+function crearIcono(clases) {
+    const icono = document.createElement("i");
+    icono.className = clases;
+
+    return icono;
+}
+
+function actualizarBotonGuardar(iconoClases, texto) {
+    limpiarElemento(botonGuardarPropiedad);
+    botonGuardarPropiedad.appendChild(crearIcono(iconoClases));
+    botonGuardarPropiedad.appendChild(document.createTextNode(" " + texto));
+}
+
+function crearParrafo(texto, clase) {
+    const parrafo = document.createElement("p");
+    parrafo.textContent = texto;
+
+    if (clase) {
+        parrafo.classList.add(clase);
+    }
+
+    return parrafo;
+}
+
+function crearBotonAccion(accion, index, texto) {
+    const boton = document.createElement("button");
+    boton.type = "button";
+    boton.dataset.accion = accion;
+    boton.dataset.index = String(index);
+    boton.textContent = texto;
+
+    return boton;
+}
+
+function crearMensajeVacio(texto) {
+    const span = document.createElement("span");
+    span.textContent = texto;
+
+    return span;
+}
+
+function esRutaRelativaSegura(url) {
+    return (
+        !url.startsWith("//") &&
+        !url.includes("\\") &&
+        !url.trim().toLowerCase().startsWith("javascript:")
+    );
+}
+
+function obtenerUrlMediaSegura(valor, tipo) {
+    const url = String(valor || "").trim();
+
+    if (url === "") {
+        return "";
+    }
+
+    if (url.startsWith("blob:")) {
+        return url;
+    }
+
+    if (tipo === "imagen" && /^data:image\/(png|jpe?g|gif|webp|avif);base64,/i.test(url)) {
+        return url;
+    }
+
+    if (tipo === "video" && /^data:video\/(mp4|webm|ogg);base64,/i.test(url)) {
+        return url;
+    }
+
+    try {
+        const parsedUrl = new URL(url, window.location.origin);
+        const protocolosPermitidos = ["http:", "https:"];
+
+        if (protocolosPermitidos.includes(parsedUrl.protocol)) {
+            if (parsedUrl.origin === window.location.origin && esRutaRelativaSegura(url)) {
+                return url;
+            }
+
+            if (url.startsWith("http://") || url.startsWith("https://")) {
+                return parsedUrl.href;
+            }
+        }
+    } catch (error) {
+        return "";
+    }
+
+    return "";
+}
+
+function crearPreviewImagen(url) {
+    const urlSegura = obtenerUrlMediaSegura(url, "imagen");
+
+    if (!urlSegura) {
+        return null;
+    }
+
+    const figure = document.createElement("figure");
+    figure.classList.add("admin-preview-item");
+
+    const imagen = document.createElement("img");
+    imagen.setAttribute("src", urlSegura);
+    imagen.setAttribute("alt", "Preview de propiedad");
+
+    figure.appendChild(imagen);
+
+    return figure;
+}
+
+function crearVideo(url, clase, muted) {
+    const urlSegura = obtenerUrlMediaSegura(url, "video");
+
+    if (!urlSegura) {
+        return null;
+    }
+
+    const video = document.createElement("video");
+    video.setAttribute("src", urlSegura);
+    video.controls = true;
+
+    if (clase) {
+        video.classList.add(clase);
+    }
+
+    if (muted) {
+        video.muted = true;
+    }
+
+    return video;
+}
+
 function setGuardando(guardando) {
     botonGuardarPropiedad.disabled = guardando;
 
-    botonGuardarPropiedad.innerHTML = guardando
-        ? '<i class="fa-solid fa-spinner"></i> Guardando...'
-        : propiedadEditando
-            ? '<i class="fa-solid fa-floppy-disk"></i> Guardar cambios'
-            : '<i class="fa-solid fa-plus"></i> Guardar propiedad';
+    if (guardando) {
+        actualizarBotonGuardar("fa-solid fa-spinner", "Guardando...");
+        return;
+    }
+
+    if (propiedadEditando) {
+        actualizarBotonGuardar("fa-solid fa-floppy-disk", "Guardar cambios");
+        return;
+    }
+
+    actualizarBotonGuardar("fa-solid fa-plus", "Guardar propiedad");
 }
 
 function obtenerImagenesDesdeCampo() {
@@ -283,54 +424,65 @@ function renderizarPreviewImagenes() {
     const imagenesTexto = obtenerImagenesDesdeCampo();
     const archivos = Array.from(campos.imagenesArchivo.files);
 
+    limpiarElemento(previewImagenes);
+
     if (imagenesTexto.length === 0 && archivos.length === 0) {
-        previewImagenes.innerHTML = "<span>No hay imágenes seleccionadas.</span>";
+        previewImagenes.appendChild(crearMensajeVacio("No hay imágenes seleccionadas."));
         return;
     }
 
-    previewImagenes.innerHTML = "";
-
     imagenesTexto.forEach(function (imagen) {
-        previewImagenes.innerHTML += `
-            <figure class="admin-preview-item">
-                <img src="${imagen}" alt="Preview de propiedad">
-            </figure>
-        `;
+        const preview = crearPreviewImagen(imagen);
+
+        if (preview) {
+            previewImagenes.appendChild(preview);
+        }
     });
 
     archivos.forEach(function (archivo) {
         const urlTemporal = URL.createObjectURL(archivo);
+        const preview = crearPreviewImagen(urlTemporal);
 
-        previewImagenes.innerHTML += `
-            <figure class="admin-preview-item">
-                <img src="${urlTemporal}" alt="Preview de propiedad">
-            </figure>
-        `;
+        if (preview) {
+            previewImagenes.appendChild(preview);
+        }
     });
+
+    if (!previewImagenes.firstChild) {
+        previewImagenes.appendChild(crearMensajeVacio("No hay imágenes válidas para mostrar."));
+    }
 }
 
 function renderizarPreviewVideo() {
     const videoUrl = campos.video.value.trim();
     const archivo = campos.videoArchivo.files[0];
 
+    limpiarElemento(previewVideo);
+
     if (!videoUrl && !archivo) {
-        previewVideo.innerHTML = "<span>No hay video cargado.</span>";
+        previewVideo.appendChild(crearMensajeVacio("No hay video cargado."));
         return;
     }
 
     const fuente = archivo ? URL.createObjectURL(archivo) : videoUrl;
+    const video = crearVideo(fuente);
 
-    previewVideo.innerHTML = `
-        <video src="${fuente}" controls></video>
-    `;
+    if (video) {
+        previewVideo.appendChild(video);
+        return;
+    }
+
+    previewVideo.appendChild(crearMensajeVacio("La URL del video no es válida."));
 }
 
 function renderizarPreviewHero() {
     const archivo = camposHero.archivoFondo.files[0];
     const fondoUrl = camposHero.fondo.value.trim();
 
+    limpiarElemento(previewHero);
+
     if (!archivo && !fondoUrl) {
-        previewHero.innerHTML = "<span>No hay fondo cargado.</span>";
+        previewHero.appendChild(crearMensajeVacio("No hay fondo cargado."));
         return;
     }
 
@@ -338,15 +490,28 @@ function renderizarPreviewHero() {
     const tipoFondo = obtenerTipoFondoFinal(fuente);
 
     if (tipoFondo === "video") {
-        previewHero.innerHTML = `
-            <video src="${fuente}" muted controls></video>
-        `;
+        const video = crearVideo(fuente, "", true);
+
+        if (video) {
+            previewHero.appendChild(video);
+            return;
+        }
+
+        previewHero.appendChild(crearMensajeVacio("La URL del video no es válida."));
         return;
     }
 
-    previewHero.innerHTML = `
-        <img src="${fuente}" alt="Preview del hero">
-    `;
+    const urlSegura = obtenerUrlMediaSegura(fuente, "imagen");
+
+    if (!urlSegura) {
+        previewHero.appendChild(crearMensajeVacio("La URL de la imagen no es válida."));
+        return;
+    }
+
+    const imagen = document.createElement("img");
+    imagen.setAttribute("src", urlSegura);
+    imagen.setAttribute("alt", "Preview del hero");
+    previewHero.appendChild(imagen);
 }
 
 function resetearFormularioPropiedad() {
@@ -357,7 +522,7 @@ function resetearFormularioPropiedad() {
     renderizarPreviewVideo();
 
     tituloFormPropiedad.textContent = "Cargar propiedad";
-    botonGuardarPropiedad.innerHTML = '<i class="fa-solid fa-plus"></i> Guardar propiedad';
+    actualizarBotonGuardar("fa-solid fa-plus", "Guardar propiedad");
     botonCancelarEdicion.classList.add("oculto");
 }
 
@@ -379,7 +544,7 @@ function cargarPropiedadParaEditar(propiedad) {
     renderizarPreviewVideo();
 
     tituloFormPropiedad.textContent = propiedad.origen === "base" ? "Editar propiedad base" : "Editar propiedad";
-    botonGuardarPropiedad.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar cambios';
+    actualizarBotonGuardar("fa-solid fa-floppy-disk", "Guardar cambios");
     botonCancelarEdicion.classList.remove("oculto");
 
     window.scrollTo({
@@ -390,24 +555,15 @@ function cargarPropiedadParaEditar(propiedad) {
 
 function renderizarPropiedadesAdmin() {
     contadorPropiedades.textContent = propiedadesActuales.length;
-    listaPropiedades.innerHTML = "";
+    limpiarElemento(listaPropiedades);
 
     if (propiedadesActuales.length === 0) {
-        listaPropiedades.innerHTML = `
-            <p class="admin-vacio">
-                Todavía no hay propiedades cargadas.
-            </p>
-        `;
+        listaPropiedades.appendChild(crearParrafo("Todavía no hay propiedades cargadas.", "admin-vacio"));
 
         return;
     }
 
     propiedadesActuales.forEach(function (propiedad, index) {
-        const videoTexto = propiedad.video ? "<p>Incluye video</p>" : "<p>Sin video</p>";
-        const videoPreview = propiedad.video ? `
-            <video class="admin-card-video" src="${propiedad.video}" controls></video>
-        ` : "";
-
         const origenTexto = propiedad.origen === "base"
             ? "Propiedad base"
             : propiedad.origen === "supabase"
@@ -418,34 +574,51 @@ function renderizarPropiedadesAdmin() {
             ? propiedad.imagenes[0]
             : "";
 
-        listaPropiedades.innerHTML += `
-            <article class="admin-card">
-                <div class="admin-card-media">
-                    ${imagenPrincipal ? `<img src="${imagenPrincipal}" alt="${propiedad.titulo}">` : ""}
-                    ${videoPreview}
-                </div>
+        const card = document.createElement("article");
+        card.classList.add("admin-card");
 
-                <div>
-                    <h3>${propiedad.titulo}</h3>
-                    <p class="admin-origen">${origenTexto}</p>
-                    <p>${propiedad.precio}</p>
-                    <p>${propiedad.ubicacion}</p>
-                    <p>${propiedad.metros} · ${propiedad.tipo}</p>
-                    <p>${propiedad.imagenes.length} imagen/es</p>
-                    ${videoTexto}
+        const media = document.createElement("div");
+        media.classList.add("admin-card-media");
 
-                    <div class="admin-card-acciones">
-                        <button type="button" data-accion="editar" data-index="${index}">
-                            Editar
-                        </button>
+        const imagenUrlSegura = obtenerUrlMediaSegura(imagenPrincipal, "imagen");
 
-                        <button type="button" data-accion="eliminar" data-index="${index}">
-                            Eliminar
-                        </button>
-                    </div>
-                </div>
-            </article>
-        `;
+        if (imagenUrlSegura) {
+            const imagen = document.createElement("img");
+            imagen.setAttribute("src", imagenUrlSegura);
+            imagen.setAttribute("alt", propiedad.titulo || "Propiedad");
+            media.appendChild(imagen);
+        }
+
+        const video = crearVideo(propiedad.video, "admin-card-video");
+
+        if (video) {
+            media.appendChild(video);
+        }
+
+        const contenido = document.createElement("div");
+        const titulo = document.createElement("h3");
+        titulo.textContent = propiedad.titulo || "";
+
+        const cantidadImagenes = Array.isArray(propiedad.imagenes) ? propiedad.imagenes.length : 0;
+
+        contenido.appendChild(titulo);
+        contenido.appendChild(crearParrafo(origenTexto, "admin-origen"));
+        contenido.appendChild(crearParrafo(propiedad.precio || ""));
+        contenido.appendChild(crearParrafo(propiedad.ubicacion || ""));
+        contenido.appendChild(crearParrafo((propiedad.metros || "") + " · " + (propiedad.tipo || "")));
+        contenido.appendChild(crearParrafo(cantidadImagenes + " imagen/es"));
+        contenido.appendChild(crearParrafo(propiedad.video ? "Incluye video" : "Sin video"));
+
+        const acciones = document.createElement("div");
+        acciones.classList.add("admin-card-acciones");
+        acciones.appendChild(crearBotonAccion("editar", index, "Editar"));
+        acciones.appendChild(crearBotonAccion("eliminar", index, "Eliminar"));
+
+        contenido.appendChild(acciones);
+        card.appendChild(media);
+        card.appendChild(contenido);
+
+        listaPropiedades.appendChild(card);
     });
 }
 
