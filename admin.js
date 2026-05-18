@@ -17,6 +17,15 @@ const previewHero = document.querySelector("#preview-hero");
 const logoutBtn = document.querySelector("#logout-btn");
 const migrarBaseBtn = document.querySelector("#migrar-base-btn");
 
+const MAX_IMAGEN_MB = 5;
+const MAX_VIDEO_MB = 50;
+const MAX_IMAGEN_BYTES = MAX_IMAGEN_MB * 1024 * 1024;
+const MAX_VIDEO_BYTES = MAX_VIDEO_MB * 1024 * 1024;
+const EXTENSIONES_IMAGEN = ["jpg", "jpeg", "png", "webp", "gif"];
+const EXTENSIONES_VIDEO = ["mp4", "webm", "mov"];
+const TIPOS_IMAGEN = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const TIPOS_VIDEO = ["video/mp4", "video/webm", "video/quicktime"];
+
 const camposHero = {
     titulo: document.querySelector("#hero-titulo"),
     subtitulo: document.querySelector("#hero-subtitulo"),
@@ -56,7 +65,7 @@ function inferirTipoFondoDesdeArchivo(archivo) {
     if (
         nombreArchivo.endsWith(".mp4") ||
         nombreArchivo.endsWith(".webm") ||
-        nombreArchivo.endsWith(".ogg")
+        nombreArchivo.endsWith(".mov")
     ) {
         return "video";
     }
@@ -71,7 +80,7 @@ function inferirTipoFondoDesdeArchivo(archivo) {
 function inferirTipoFondoDesdeUrl(url) {
     const urlLimpia = url.split("?")[0].split("#")[0].toLowerCase();
 
-    if (urlLimpia.endsWith(".mp4") || urlLimpia.endsWith(".webm") || urlLimpia.endsWith(".ogg")) {
+    if (urlLimpia.endsWith(".mp4") || urlLimpia.endsWith(".webm") || urlLimpia.endsWith(".mov")) {
         return "video";
     }
 
@@ -84,7 +93,7 @@ function inferirTipoFondoDesdeUrl(url) {
         urlLimpia.endsWith(".jpeg") ||
         urlLimpia.endsWith(".png") ||
         urlLimpia.endsWith(".webp") ||
-        urlLimpia.endsWith(".avif")
+        urlLimpia.endsWith(".gif")
     ) {
         return "imagen";
     }
@@ -160,6 +169,37 @@ function esRutaRelativaSegura(url) {
     );
 }
 
+function obtenerExtensionDesdeNombre(nombre) {
+    return String(nombre || "")
+        .split("?")[0]
+        .split("#")[0]
+        .split(".")
+        .pop()
+        .toLowerCase();
+}
+
+function obtenerExtensionDesdeUrl(url) {
+    try {
+        const parsedUrl = new URL(url, window.location.origin);
+        return obtenerExtensionDesdeNombre(parsedUrl.pathname);
+    } catch (error) {
+        return "";
+    }
+}
+
+function tieneExtensionPermitida(url, extensiones) {
+    return extensiones.includes(obtenerExtensionDesdeUrl(url));
+}
+
+function esUrlWebValida(url) {
+    try {
+        const parsedUrl = new URL(url, window.location.origin);
+        return ["http:", "https:"].includes(parsedUrl.protocol);
+    } catch (error) {
+        return false;
+    }
+}
+
 function obtenerUrlMediaSegura(valor, tipo) {
     const url = String(valor || "").trim();
 
@@ -171,11 +211,11 @@ function obtenerUrlMediaSegura(valor, tipo) {
         return url;
     }
 
-    if (tipo === "imagen" && /^data:image\/(png|jpe?g|gif|webp|avif);base64,/i.test(url)) {
+    if (tipo === "imagen" && /^data:image\/(png|jpe?g|gif|webp);base64,/i.test(url)) {
         return url;
     }
 
-    if (tipo === "video" && /^data:video\/(mp4|webm|ogg);base64,/i.test(url)) {
+    if (tipo === "video" && /^data:video\/(mp4|webm|quicktime);base64,/i.test(url)) {
         return url;
     }
 
@@ -197,6 +237,86 @@ function obtenerUrlMediaSegura(valor, tipo) {
     }
 
     return "";
+}
+
+function esUrlManualImagenValida(url) {
+    const urlSegura = obtenerUrlMediaSegura(url, "imagen");
+
+    return Boolean(
+        urlSegura &&
+        (
+            urlSegura.startsWith("data:image/") ||
+            urlSegura.startsWith("blob:") ||
+            tieneExtensionPermitida(urlSegura, EXTENSIONES_IMAGEN)
+        )
+    );
+}
+
+function esUrlManualVideoValida(url) {
+    const urlSegura = obtenerUrlMediaSegura(url, "video");
+
+    return Boolean(
+        urlSegura &&
+        (
+            urlSegura.startsWith("data:video/") ||
+            urlSegura.startsWith("blob:") ||
+            tieneExtensionPermitida(urlSegura, EXTENSIONES_VIDEO)
+        )
+    );
+}
+
+function esWhatsappValido(url) {
+    const valor = String(url || "").trim();
+
+    return valor !== "" && esUrlWebValida(valor) && /^(https?):\/\//i.test(valor);
+}
+
+function validarArchivo(archivo, tipo) {
+    const esImagen = tipo === "imagen";
+    const extensiones = esImagen ? EXTENSIONES_IMAGEN : EXTENSIONES_VIDEO;
+    const tiposPermitidos = esImagen ? TIPOS_IMAGEN : TIPOS_VIDEO;
+    const pesoMaximo = esImagen ? MAX_IMAGEN_BYTES : MAX_VIDEO_BYTES;
+    const pesoMaximoMb = esImagen ? MAX_IMAGEN_MB : MAX_VIDEO_MB;
+    const etiqueta = esImagen ? "imagen" : "video";
+    const extension = obtenerExtensionDesdeNombre(archivo.name);
+
+    if (!extensiones.includes(extension)) {
+        return "El archivo " + archivo.name + " no es un formato de " + etiqueta + " permitido.";
+    }
+
+    if (archivo.type && !tiposPermitidos.includes(archivo.type)) {
+        return "El archivo " + archivo.name + " no coincide con un tipo de " + etiqueta + " permitido.";
+    }
+
+    if (archivo.size > pesoMaximo) {
+        return "El archivo " + archivo.name + " supera el máximo recomendado de " + pesoMaximoMb + " MB.";
+    }
+
+    return "";
+}
+
+function obtenerErrorArchivosImagen() {
+    const archivos = Array.from(campos.imagenesArchivo.files);
+
+    for (let i = 0; i < archivos.length; i++) {
+        const error = validarArchivo(archivos[i], "imagen");
+
+        if (error) {
+            return error;
+        }
+    }
+
+    return "";
+}
+
+function obtenerErrorArchivoVideo() {
+    const archivo = campos.videoArchivo.files[0];
+
+    if (!archivo) {
+        return "";
+    }
+
+    return validarArchivo(archivo, "video");
 }
 
 function crearPreviewImagen(url) {
@@ -353,6 +473,27 @@ function obtenerErrorHero() {
         return "Subí un archivo de fondo o agregá una URL para el hero.";
     }
 
+    if (archivo) {
+        const tipoArchivo = inferirTipoFondoDesdeArchivo(archivo);
+        const errorArchivo = validarArchivo(archivo, tipoArchivo === "video" ? "video" : "imagen");
+
+        if (errorArchivo) {
+            return errorArchivo;
+        }
+    }
+
+    if (!archivo && fondoUrl !== "") {
+        const tipoFondo = inferirTipoFondoDesdeUrl(fondoUrl);
+
+        if (tipoFondo === "video" && !esUrlManualVideoValida(fondoUrl)) {
+            return "Agregá una URL de video válida en formato mp4, webm o mov.";
+        }
+
+        if (tipoFondo !== "video" && !esUrlManualImagenValida(fondoUrl)) {
+            return "Agregá una URL de imagen válida en formato jpg, jpeg, png, webp o gif.";
+        }
+    }
+
     return "";
 }
 
@@ -385,6 +526,10 @@ function crearPropiedadDesdeFormulario(imagenes, video) {
 }
 
 function validarFormularioPropiedad() {
+    const imagenesTexto = obtenerImagenesDesdeCampo();
+    const archivoVideo = campos.videoArchivo.files[0];
+    const videoManual = campos.video.value.trim();
+
     if (campos.titulo.value.trim() === "") {
         return "Agregá un título para la propiedad.";
     }
@@ -409,15 +554,71 @@ function validarFormularioPropiedad() {
         return "Agregá el link de WhatsApp.";
     }
 
-    if (!campos.whatsapp.checkValidity()) {
-        return "Agregá un link de WhatsApp válido.";
+    if (!esWhatsappValido(campos.whatsapp.value)) {
+        return "Agregá un link de WhatsApp válido que empiece con http:// o https://.";
     }
 
-    if (obtenerImagenesDesdeCampo().length === 0 && campos.imagenesArchivo.files.length === 0) {
-        return "Agregá al menos una imagen por URL o desde tu computadora.";
+    for (let i = 0; i < imagenesTexto.length; i++) {
+        if (!esUrlManualImagenValida(imagenesTexto[i])) {
+            return "La URL de imagen " + (i + 1) + " no es válida. Usá jpg, jpeg, png, webp o gif.";
+        }
+    }
+
+    if (videoManual !== "" && !esUrlManualVideoValida(videoManual)) {
+        return "La URL del video no es válida. Usá mp4, webm o mov.";
+    }
+
+    const errorImagenes = obtenerErrorArchivosImagen();
+
+    if (errorImagenes) {
+        return errorImagenes;
+    }
+
+    const errorVideo = obtenerErrorArchivoVideo();
+
+    if (errorVideo) {
+        return errorVideo;
+    }
+
+    if (
+        imagenesTexto.length === 0 &&
+        campos.imagenesArchivo.files.length === 0 &&
+        videoManual === "" &&
+        !archivoVideo
+    ) {
+        return "Agregá al menos una imagen o un video para la propiedad.";
     }
 
     return "";
+}
+
+function validarCamposMediaPropiedad() {
+    const imagenesTexto = obtenerImagenesDesdeCampo();
+
+    for (let i = 0; i < imagenesTexto.length; i++) {
+        if (!esUrlManualImagenValida(imagenesTexto[i])) {
+            return "La URL de imagen " + (i + 1) + " no es válida. Usá jpg, jpeg, png, webp o gif.";
+        }
+    }
+
+    if (campos.video.value.trim() !== "" && !esUrlManualVideoValida(campos.video.value.trim())) {
+        return "La URL del video no es válida. Usá mp4, webm o mov.";
+    }
+
+    return obtenerErrorArchivosImagen() || obtenerErrorArchivoVideo();
+}
+
+function mostrarErrorMediaSiExiste() {
+    const errorMedia = validarCamposMediaPropiedad();
+
+    if (errorMedia) {
+        mostrarMensaje(mensajeAdmin, errorMedia, "error");
+        return;
+    }
+
+    if (mensajeAdmin.classList.contains("mensaje-error")) {
+        mostrarMensaje(mensajeAdmin, "");
+    }
 }
 
 function renderizarPreviewImagenes() {
@@ -440,6 +641,10 @@ function renderizarPreviewImagenes() {
     });
 
     archivos.forEach(function (archivo) {
+        if (validarArchivo(archivo, "imagen")) {
+            return;
+        }
+
         const urlTemporal = URL.createObjectURL(archivo);
         const preview = crearPreviewImagen(urlTemporal);
 
@@ -465,6 +670,16 @@ function renderizarPreviewVideo() {
     }
 
     const fuente = archivo ? URL.createObjectURL(archivo) : videoUrl;
+
+    if (archivo) {
+        const errorArchivo = validarArchivo(archivo, "video");
+
+        if (errorArchivo) {
+            previewVideo.appendChild(crearMensajeVacio(errorArchivo));
+            return;
+        }
+    }
+
     const video = crearVideo(fuente);
 
     if (video) {
@@ -695,18 +910,22 @@ botonRestaurarHero.addEventListener("click", async function () {
 
 campos.imagenesArchivo.addEventListener("change", function () {
     renderizarPreviewImagenes();
+    mostrarErrorMediaSiExiste();
 });
 
 campos.imagenes.addEventListener("input", function () {
     renderizarPreviewImagenes();
+    mostrarErrorMediaSiExiste();
 });
 
 campos.videoArchivo.addEventListener("change", function () {
     renderizarPreviewVideo();
+    mostrarErrorMediaSiExiste();
 });
 
 campos.video.addEventListener("input", function () {
     renderizarPreviewVideo();
+    mostrarErrorMediaSiExiste();
 });
 
 camposHero.archivoFondo.addEventListener("change", function () {
