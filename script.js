@@ -325,16 +325,30 @@ function normalizarTexto(valor) {
         .replace(/[\u0300-\u036f]/g, "");
 }
 
+function esPropiedadVisibleEnLanding(propiedad) {
+    const estado = normalizarTexto(propiedad.estado);
+
+    return estado === "" || estado === "publicada" || estado === "reservada";
+}
+
 function obtenerPropiedadesFiltradas() {
     const texto = normalizarTexto(buscador.value).trim();
 
     return propiedadesDisponibles.filter(function (propiedad) {
+        if (!esPropiedadVisibleEnLanding(propiedad)) {
+            return false;
+        }
+
         const camposBusqueda = [
             propiedad.titulo,
             propiedad.ubicacion,
+            propiedad.barrio,
             propiedad.tipo,
             propiedad.precio,
-            propiedad.metros
+            propiedad.metros,
+            propiedad.dormitorios,
+            propiedad.banos,
+            propiedad.cochera ? "cochera" : ""
         ];
         const textoPropiedad = normalizarTexto(camposBusqueda.join(" "));
         const coincideTexto = texto === "" || textoPropiedad.includes(texto);
@@ -352,6 +366,37 @@ function crearParrafoCard(texto) {
     return parrafo;
 }
 
+function crearBadgePropiedad(texto, modificador) {
+    const badge = document.createElement("span");
+    badge.className = "card-badge";
+
+    if (modificador) {
+        badge.classList.add("card-badge-" + modificador);
+    }
+
+    badge.textContent = texto;
+    return badge;
+}
+
+function crearBadgesPropiedad(propiedad) {
+    const badges = document.createElement("div");
+    badges.className = "card-badges";
+
+    if (propiedad.tipo) {
+        badges.appendChild(crearBadgePropiedad(propiedad.tipo, "operacion"));
+    }
+
+    if (propiedad.destacada !== false) {
+        badges.appendChild(crearBadgePropiedad("Destacada", "destacada"));
+    }
+
+    if (normalizarTexto(propiedad.estado) === "reservada") {
+        badges.appendChild(crearBadgePropiedad("Reservada", "reservada"));
+    }
+
+    return badges;
+}
+
 function crearCardPropiedad(propiedad) {
     const idPropiedad = obtenerIdPropiedad(propiedad);
     const tituloPropiedad = String(propiedad.titulo || "Propiedad");
@@ -367,6 +412,7 @@ function crearCardPropiedad(propiedad) {
         imagen.src = imagenFallback;
     };
     card.appendChild(imagen);
+    card.appendChild(crearBadgesPropiedad(propiedad));
 
     const titulo = document.createElement("h3");
     titulo.textContent = tituloPropiedad;
@@ -486,6 +532,8 @@ function mostrarMedioActual() {
 
 async function inicializarLanding() {
     loader.style.display = "block";
+    loader.textContent = "Cargando propiedades...";
+    contenedorPropiedades.replaceChildren();
 
     try {
         const hero = await window.heroService.getHero();
@@ -496,11 +544,15 @@ async function inicializarLanding() {
         aplicarHero(hero);
         refrescarPropiedades();
     } catch (error) {
-        console.error(error);
+        if (window.loggerService) {
+            window.loggerService.error("No se pudo inicializar la landing.", error);
+        }
 
         const mensaje = document.createElement("p");
         mensaje.className = "mensaje-vacio";
-        mensaje.textContent = "No pudimos cargar las propiedades. Intentá nuevamente más tarde.";
+        mensaje.textContent = window.loggerService
+            ? window.loggerService.getUserMessage(error, "No pudimos cargar las propiedades. Intentá nuevamente más tarde.")
+            : "No pudimos cargar las propiedades. Intentá nuevamente más tarde.";
         contenedorPropiedades.replaceChildren(mensaje);
     } finally {
         loader.style.display = "none";

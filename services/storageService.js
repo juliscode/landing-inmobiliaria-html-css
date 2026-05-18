@@ -1,6 +1,17 @@
 (function () {
     const STORAGE_TIMEOUT_MS = 10000;
 
+    function logger() {
+        return window.loggerService || {
+            info: function () {},
+            warn: function () {},
+            error: function () {},
+            getUserMessage: function (error, fallback) {
+                return fallback || error.message;
+            }
+        };
+    }
+
     function withTimeout(promise) {
         return Promise.race([
             promise,
@@ -67,11 +78,13 @@
                 })
             );
         } catch (error) {
-            throw new Error("No se pudo subir el archivo a Supabase Storage: " + error.message);
+            logger().error("No se pudo subir un archivo a Supabase Storage.", error);
+            throw new Error(logger().getUserMessage(error, "No se pudo subir el archivo. Intentá nuevamente."));
         }
 
         if (result.error) {
-            throw result.error;
+            logger().error("Supabase Storage rechazó la subida del archivo.", result.error);
+            throw new Error(logger().getUserMessage(result.error, "No se pudo subir el archivo. Intentá nuevamente."));
         }
 
         const publicUrlResult = supabase.storage.from(bucket).getPublicUrl(path);

@@ -131,6 +131,51 @@
                 </label>
 
                 <label>
+                    Barrio / zona
+                    <input type="text" id="barrio" placeholder="Yerba Buena">
+                </label>
+
+                <label>
+                    Dormitorios
+                    <input type="number" id="dormitorios" min="0" placeholder="3">
+                </label>
+
+                <label>
+                    Baños
+                    <input type="number" id="banos" min="0" placeholder="2">
+                </label>
+
+                <label>
+                    Cochera
+                    <select id="cochera">
+                        <option value="false">No</option>
+                        <option value="true">Sí</option>
+                    </select>
+                </label>
+
+                <label>
+                    Estado
+                    <select id="estado">
+                        <option value="publicada">Publicada</option>
+                        <option value="borrador">Borrador</option>
+                        <option value="reservada">Reservada</option>
+                    </select>
+                </label>
+
+                <label>
+                    Destacada
+                    <select id="destacada">
+                        <option value="true">Sí</option>
+                        <option value="false">No</option>
+                    </select>
+                </label>
+
+                <label>
+                    Orden
+                    <input type="number" id="orden" min="0" placeholder="0">
+                </label>
+
+                <label>
                     WhatsApp
                     <input type="url" id="whatsapp" placeholder="https://wa.me/549381000000" required>
                 </label>
@@ -198,8 +243,34 @@
         </section>
     </main>
 
+    <div
+        id="modal-confirmar-eliminacion"
+        class="admin-modal-confirmacion oculto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="titulo-confirmar-eliminacion"
+        aria-describedby="texto-confirmar-eliminacion"
+    >
+        <div class="admin-modal-confirmacion-fondo" data-cerrar-confirmacion="true"></div>
+        <div class="admin-modal-confirmacion-contenido" tabindex="-1">
+            <h2 id="titulo-confirmar-eliminacion">Confirmar eliminación</h2>
+            <p id="texto-confirmar-eliminacion">
+                ¿Seguro que querés eliminar esta propiedad?
+            </p>
+            <div class="admin-modal-confirmacion-acciones">
+                <button type="button" id="cancelar-eliminacion" class="admin-boton-secundario">
+                    Cancelar
+                </button>
+                <button type="button" id="confirmar-eliminacion" class="admin-boton admin-boton-peligro">
+                    Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config/supabaseConfig.js"></script>
+    <script src="services/loggerService.js"></script>
     <script src="services/supabaseClient.js"></script>
     <script src="services/storageService.js"></script>
     <script src="services/authService.js"></script>

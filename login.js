@@ -10,7 +10,9 @@ async function redirigirSiYaTieneSesion() {
     try {
         session = await window.authService.getSession();
     } catch (error) {
-        loginMensaje.textContent = "No se pudo verificar la sesión: " + error.message;
+        loginMensaje.textContent = window.loggerService
+            ? window.loggerService.getUserMessage(error, "No se pudo verificar la sesión. Intentá nuevamente.")
+            : "No se pudo verificar la sesión. Intentá nuevamente.";
         return;
     }
 
@@ -23,7 +25,9 @@ async function redirigirSiYaTieneSesion() {
     try {
         admin = await window.authService.isAdmin(session);
     } catch (error) {
-        loginMensaje.textContent = "No se pudo verificar permisos: " + error.message;
+        loginMensaje.textContent = window.loggerService
+            ? window.loggerService.getUserMessage(error, "No se pudo verificar tus permisos. Intentá nuevamente.")
+            : "No se pudo verificar tus permisos. Intentá nuevamente.";
         return;
     }
 
@@ -45,7 +49,13 @@ loginForm.addEventListener("submit", async function (event) {
         await window.authService.signIn(loginEmail.value.trim(), loginPassword.value);
         window.location.replace("admin.html");
     } catch (error) {
-        loginMensaje.textContent = "No se pudo iniciar sesión: " + error.message;
+        if (window.loggerService) {
+            window.loggerService.warn("No se pudo iniciar sesión.", error);
+        }
+
+        loginMensaje.textContent = window.loggerService
+            ? window.loggerService.getUserMessage(error, "No se pudo iniciar sesión. Revisá tus datos e intentá nuevamente.")
+            : "No se pudo iniciar sesión. Revisá tus datos e intentá nuevamente.";
         loginSubmit.disabled = false;
         loginEmail.focus();
     }

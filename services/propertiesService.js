@@ -3,6 +3,17 @@
     const STORAGE_OVERRIDES = "propiedadesBaseOverrides";
     const SUPABASE_TIMEOUT_MS = 7000;
 
+    function logger() {
+        return window.loggerService || {
+            info: function () {},
+            warn: function () {},
+            error: function () {},
+            getUserMessage: function (error, fallback) {
+                return fallback || error.message;
+            }
+        };
+    }
+
     function withTimeout(promise) {
         return Promise.race([
             promise,
@@ -22,7 +33,7 @@
         try {
             return JSON.parse(localStorage.getItem(clave)) || fallback;
         } catch (error) {
-            console.warn("No se pudo leer " + clave + " desde localStorage:", error.message);
+            logger().warn("No se pudo leer datos locales de propiedades.", error);
             return fallback;
         }
     }
@@ -48,6 +59,29 @@
         return [];
     }
 
+    function normalizeOptionalNumber(value) {
+        const numberValue = Number(value);
+
+        if (value === null || value === undefined || value === "" || Number.isNaN(numberValue)) {
+            return null;
+        }
+
+        return numberValue;
+    }
+
+    function sortProperties(propiedades) {
+        return propiedades.slice().sort(function (a, b) {
+            const ordenA = normalizeOptionalNumber(a.orden) || 0;
+            const ordenB = normalizeOptionalNumber(b.orden) || 0;
+
+            if (ordenA !== ordenB) {
+                return ordenA - ordenB;
+            }
+
+            return String(b.created_at || "").localeCompare(String(a.created_at || ""));
+        });
+    }
+
     function normalizeLocalProperty(propiedad, index) {
         return {
             id: propiedad.id || crearIdBase(index),
@@ -59,7 +93,13 @@
             whatsapp: propiedad.whatsapp || "",
             imagenes: normalizeImages(propiedad.imagenes),
             video: propiedad.video || "",
+            dormitorios: normalizeOptionalNumber(propiedad.dormitorios),
+            banos: normalizeOptionalNumber(propiedad.banos),
+            cochera: propiedad.cochera === true,
+            barrio: propiedad.barrio || "",
+            estado: propiedad.estado || "publicada",
             destacada: propiedad.destacada !== false,
+            orden: normalizeOptionalNumber(propiedad.orden) || 0,
             created_at: propiedad.created_at || null,
             updated_at: propiedad.updated_at || null,
             origen: propiedad.origen || "base"
@@ -77,7 +117,13 @@
             whatsapp: row.whatsapp_url || row.whatsapp || "",
             imagenes: normalizeImages(row.images || row.imagenes),
             video: row.video_url || row.video || "",
+            dormitorios: normalizeOptionalNumber(row.bedrooms !== undefined ? row.bedrooms : row.dormitorios),
+            banos: normalizeOptionalNumber(row.bathrooms !== undefined ? row.bathrooms : row.banos),
+            cochera: row.garage === true || row.cochera === true,
+            barrio: row.neighborhood || row.barrio || "",
+            estado: row.status || row.estado || "publicada",
             destacada: row.is_featured,
+            orden: normalizeOptionalNumber(row.display_order !== undefined ? row.display_order : row.orden) || 0,
             created_at: row.created_at,
             updated_at: row.updated_at,
             origen: "supabase"
@@ -94,7 +140,13 @@
             whatsapp_url: propiedad.whatsapp,
             images: propiedad.imagenes,
             video_url: propiedad.video || null,
-            is_featured: propiedad.destacada !== false
+            is_featured: propiedad.destacada !== false,
+            bedrooms: normalizeOptionalNumber(propiedad.dormitorios),
+            bathrooms: normalizeOptionalNumber(propiedad.banos),
+            garage: propiedad.cochera === true,
+            neighborhood: propiedad.barrio || null,
+            status: propiedad.estado || "publicada",
+            display_order: normalizeOptionalNumber(propiedad.orden) || 0
         };
     }
 
@@ -152,14 +204,14 @@
     }
 
     function listLocal() {
-        return obtenerPropiedadesBaseLocal().concat(obtenerPropiedadesAdminLocal());
+        return sortProperties(obtenerPropiedadesBaseLocal().concat(obtenerPropiedadesAdminLocal()));
     }
 
     async function listProperties() {
         const supabase = window.supabaseClientService.getSupabaseClient();
 
         if (!supabase) {
-            console.info("Supabase no configurado. Usando propiedades locales.");
+            logger().info("Supabase no configurado. Usando propiedades locales.");
             return listLocal();
         }
 
@@ -173,29 +225,29 @@
                     .order("created_at", { ascending: false })
             );
         } catch (error) {
-            console.warn("Supabase properties fallback: la consulta falló. Usando propiedades locales.", error.message);
+            logger().warn("La consulta de propiedades falló. Usando fallback local.", error);
             return listLocal();
         }
 
         if (result.error) {
-            console.warn("Supabase properties fallback: Supabase devolvió error. Usando propiedades locales.", result.error.message);
+            logger().warn("Supabase devolvió error al listar propiedades. Usando fallback local.", result.error);
             return listLocal();
         }
 
         if (!result.data || result.data.length === 0) {
-            console.warn("Supabase properties fallback: la tabla properties está vacía. Usando propiedades locales.");
+            logger().warn("La tabla properties está vacía. Usando fallback local.");
             return listLocal();
         }
 
         const propiedadesSupabase = result.data.map(fromSupabase);
 
         if (propiedadesSupabase.length === 0) {
-            console.warn("Supabase properties fallback: no se pudieron normalizar propiedades. Usando propiedades locales.");
+            logger().warn("No se pudieron normalizar propiedades. Usando fallback local.");
             return listLocal();
         }
 
-        console.info("Propiedades cargadas desde Supabase:", propiedadesSupabase.length);
-        return propiedadesSupabase;
+        logger().info("Propiedades cargadas desde Supabase.");
+        return sortProperties(propiedadesSupabase);
     }
 
     async function saveProperty(propiedad, context) {
