@@ -742,7 +742,25 @@ video:focus-visible,
 
     .modal {
         padding: 16px;
-        align-items: flex-start;
+        align-items: center;
+        height: 100dvh;
+        max-height: 100dvh;
+        overflow: hidden;
+    }
+
+    .modal-contenido {
+        max-height: calc(100dvh - 32px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #cerrar-modal {
+        position: sticky;
+        top: 14px;
+        right: 14px;
+        margin: 14px 14px -52px auto;
+        flex-shrink: 0;
     }
 
     .modal-galeria {
